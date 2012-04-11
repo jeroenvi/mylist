@@ -65,11 +65,11 @@ class block_courses_overview extends block_base
             try
             {
                 $mycourseoverview = array();// later wil ik array_unshift gebruiken dus liever een array dan een object, dus geen: $mycourseoverview = new stdClass;
-                $mycourseoverview['id'] = $mc->id;// id meegeven om links te kunnen maken van de course names
+                $mycourseoverview['id'] = $mc->id;// id en fullname meegeven om links te kunnen maken van de course names. deze met key meegeven om handig op te kunnen halen
                 $mycourseoverview['fullname'] = $mc->fullname;
                 if($showgrades)
                 {
-                    $mycourseoverview['coursegrade'] = grade_get_course_grade($USER->id, $mc->id)->str_grade;
+                    $mycourseoverview[] = grade_get_course_grade($USER->id, $mc->id)->str_grade;
                 }
                 
                 $data[] = $mycourseoverview;
@@ -86,23 +86,38 @@ class block_courses_overview extends block_base
     
     private function block_courses_overview_html($data, $showgrades)
     {
+        // switch id + fullname in $data to fullnamelink, get back the adjusted $data
         $data = $this->block_courses_overview_link($data);
-        $table = new html_table();
-        if($showgrades)
+        $divtable = '<div class="data overview table">';
+        if ($showgrades)
         {
-            //language files gebruiken
-            //of uit $data halen, en dan dus eerst erin zetten
-            $table->head  = array('course','grade'); 
+            //language files gebruiken?
+            //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
+            //bij rows en columns first/last toevoegen aan firsts en lasts?
+            $divtable .= '<div class="head entirerow row1">';
+            $divtable .= '<div class="head row1 col1">course</div>'; 
+            $divtable .= '<div class="head row1 col2">grade</div>'; 
+            $divtable .= '</div>';//head entirerow row1 
         }
         else
         {
-            $table->head  = array('course');
+            $divtable .= '<div class="head entirerow row1">';
+            $divtable .= '<div class="head row1 col1">course</div>'; 
+            $divtable .= '</div>';//head entirerow row1 
         }
-        ///$table->size  = array('70%', '20%', '10%');
-        ///$table->align = array('left', 'center', 'center');
-        $table->attributes['class'] = 'data overview table'; 
-        $table->data  = $data;
-        return html_writer::table($table);
+        $l = count($data);
+        for ($i = 0; $i < $l; $i++)
+        {
+            $divtable .= '<div class="coursedata entirerow row' . ($i + 2) . '">';
+            $l2 = count($data[$i]);
+            for ($i2 = 0; $i2 < $l2; $i2++)
+            {
+                $divtable .= '<div class="coursedata row' . ($i + 2) . ' col' . ($i2 + 1) . '">' . $data[$i][$i2] . '</div>'; 
+            }
+            $divtable .= '</div>';//coursedata entirerow rowx
+        }        
+        $divtable .= '</div>';//data overview table
+        return $divtable;
     }
     
     
