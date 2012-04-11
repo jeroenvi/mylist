@@ -64,19 +64,19 @@ class block_courses_overview extends block_base
         {
             try
             {
-                $mycourseoverview = new stdClass;
-                $mycourseoverview->fullname = $mc->fullname;///$mycourses[$mc->id]->fullname;
-                
+                $mycourseoverview = array();// later wil ik array_unshift gebruiken dus liever een array dan een object, dus geen: $mycourseoverview = new stdClass;
+                $mycourseoverview['id'] = $mc->id;// id meegeven om links te kunnen maken van de course names
+                $mycourseoverview['fullname'] = $mc->fullname;
                 if($showgrades)
                 {
-                    $mycourseoverview->coursegrade = grade_get_course_grade($USER->id, $mc->id)->str_grade;
+                    $mycourseoverview['coursegrade'] = grade_get_course_grade($USER->id, $mc->id)->str_grade;
                 }
                 
                 $data[] = $mycourseoverview;
             }
             catch(exception $e)
             {
-                return "fail!";
+                return "failed to get data!";
             }
         } 
         return $data;
@@ -86,10 +86,13 @@ class block_courses_overview extends block_base
     
     private function block_courses_overview_html($data, $showgrades)
     {
+        $data = $this->block_courses_overview_link($data);
         $table = new html_table();
         if($showgrades)
         {
-            $table->head  = array('course','grade'); ///array($data[7]->id, $data[7]->coursegrade);
+            //language files gebruiken
+            //of uit $data halen, en dan dus eerst erin zetten
+            $table->head  = array('course','grade'); 
         }
         else
         {
@@ -97,9 +100,37 @@ class block_courses_overview extends block_base
         }
         ///$table->size  = array('70%', '20%', '10%');
         ///$table->align = array('left', 'center', 'center');
-        $table->attributes['class'] = 'data overview table'; ///'scaletable localscales generaltable';
-        $table->data  = $data;///array($data[]->id, $data[]->coursegrade); ///$data;///array($data->name, $data->coursegrade);
-        ///print_object($data);
+        $table->attributes['class'] = 'data overview table'; 
+        $table->data  = $data;
         return html_writer::table($table);
+    }
+    
+    
+    
+    private function block_courses_overview_link($data)
+    {
+        $l = count($data);
+        for($i = 0; $i < $l; $i++)
+        {
+            try
+            {
+                $fullnamelink =
+                    html_writer::link   
+                    (
+                        new moodle_url('/course/view.php', array('id' => $data[$i]['id'])),
+                        $data[$i]['fullname'],
+                        array('title' => $data[$i]['fullname'])
+                    );
+                unset($data[$i]['id']);
+                unset($data[$i]['fullname']);
+                // zet de link als eerste in $data - array_unshift doet een prepend ipv append
+                array_unshift($data[$i], $fullnamelink);
+            }
+            catch(exception $e)
+            {
+                return "failed to make links!";
+            }
+        } 
+        return $data;
     }
 } 
