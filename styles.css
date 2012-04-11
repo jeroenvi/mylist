@@ -1,0 +1,30 @@
+.entirerow
+{
+    float: left;
+    width: 580px;
+    padding: 3px;
+    margin: 0px;
+}
+.entirerow.head
+{
+    font-weight: bold;
+}
+.data.overview.table
+{
+    padding: 5px;
+    margin: 0px;
+    width: 600px;
+}
+.col
+{
+    padding: 3px;
+    margin: 0px;
+    float: left;
+    width: 190px;
+}
+hr
+{
+    clear:both;
+    display:block;
+    visibility:hidden;
+}

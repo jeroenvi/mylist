@@ -35,7 +35,7 @@ class block_courses_overview extends block_base
         
         // display content        
         $this->content          = new stdClass;
-        $this->content->text    = '<br/>' . $overview;///'The content of our courses overview block!';
+        $this->content->text    = $overview;///'The content of our courses overview block!';
         ///$this->content->footer  = 'Footer here...';
         return $this->content;
     }
@@ -95,14 +95,14 @@ class block_courses_overview extends block_base
             //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
             //bij rows en columns first/last toevoegen aan firsts en lasts?
             $divtable .= '<div class="head entirerow row1">';
-            $divtable .= '<div class="head row1 col1">course</div>'; 
-            $divtable .= '<div class="head row1 col2">grade</div>'; 
+            $divtable .= '<div class="head col row1 col1">course</div>'; 
+            $divtable .= '<div class="head col row1 col2">grade</div>'; 
             $divtable .= '</div>';//head entirerow row1 
         }
         else
         {
             $divtable .= '<div class="head entirerow row1">';
-            $divtable .= '<div class="head row1 col1">course</div>'; 
+            $divtable .= '<div class="head col row1 col1">course</div>'; 
             $divtable .= '</div>';//head entirerow row1 
         }
         $l = count($data);
@@ -112,11 +112,12 @@ class block_courses_overview extends block_base
             $l2 = count($data[$i]);
             for ($i2 = 0; $i2 < $l2; $i2++)
             {
-                $divtable .= '<div class="coursedata row' . ($i + 2) . ' col' . ($i2 + 1) . '">' . $data[$i][$i2] . '</div>'; 
+                $divtable .= '<div class="coursedata col row' . ($i + 2) . ' col' . ($i2 + 1) . '">' . $data[$i][$i2] . '</div>'; 
             }
             $divtable .= '</div>';//coursedata entirerow rowx
         }        
-        $divtable .= '</div>';//data overview table
+        $divtable .= '<hr /></div>';//data overview table
+        
         return $divtable;
     }
     
