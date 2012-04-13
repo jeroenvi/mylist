@@ -88,35 +88,36 @@ class block_courses_overview extends block_base
     {
         // switch id + fullname in $data to fullnamelink, get back the adjusted $data
         $data = $this->block_courses_overview_link($data);
-        $divtable = '<div class="data overview table">';
+        $divtable = html_writer::start_tag('div', array('class' => 'data overview table')); 
         if ($showgrades)
         {
             //language files gebruiken?
             //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
             //bij rows en columns first/last toevoegen aan firsts en lasts?
-            $divtable .= '<div class="head entirerow row1">';
-            $divtable .= '<div class="head col row1 col1">course</div>'; 
-            $divtable .= '<div class="head col row1 col2">grade</div>'; 
-            $divtable .= '</div>';//head entirerow row1 
+            $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
+            $divtable .= html_writer::tag('div', 'course', array('class' => 'head col row1 col1')); 
+            $divtable .= html_writer::tag('div', 'grade', array('class' => 'head col row1 col2')); 
+            $divtable .= html_writer::end_tag('div');//head entirerow row1 
         }
         else
         {
-            $divtable .= '<div class="head entirerow row1">';
-            $divtable .= '<div class="head col row1 col1">course</div>'; 
-            $divtable .= '</div>';//head entirerow row1 
+            $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
+            $divtable .= html_writer::tag('div', 'course', array('class' => 'head col row1 col1')); 
+            $divtable .= html_writer::end_tag('div');//head entirerow row1 
         }
         $l = count($data);
         for ($i = 0; $i < $l; $i++)
         {
-            $divtable .= '<div class="coursedata entirerow row' . ($i + 2) . '">';
+            $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow row' . ($i + 2) ));
             $l2 = count($data[$i]);
             for ($i2 = 0; $i2 < $l2; $i2++)
             {
-                $divtable .= '<div class="coursedata col row' . ($i + 2) . ' col' . ($i2 + 1) . '">' . $data[$i][$i2] . '</div>'; 
+                $divtable .= html_writer::tag('div', $data[$i][$i2], array('class' => 'coursedata col row' . ($i + 2) . ' col' . ($i2 + 1) )); 
             }
-            $divtable .= '</div>';//coursedata entirerow rowx
+            $divtable .= html_writer::end_tag('div');//coursedata entirerow rowx
         }        
-        $divtable .= '<hr /></div>';//data overview table
+        $divtable .= html_writer::empty_tag('hr');
+        $divtable .= html_writer::end_tag('div');//data overview table
         
         return $divtable;
     }
