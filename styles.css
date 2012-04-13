@@ -1,7 +1,8 @@
 .entirerow
 {
     float: left;
-    width: 580px;
+    /*width: 580px;*/
+    width:100%;
     padding: 3px;
     margin: 0px;
 }
@@ -13,14 +14,14 @@
 {
     padding: 5px;
     margin: 0px;
-    width: 600px;
+    /*width: 600px;*/
 }
 .col
 {
     padding: 3px;
     margin: 0px;
     float: left;
-    width: 190px;
+    /*width: 190px;*/
 }
 hr
 {

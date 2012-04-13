@@ -19,9 +19,10 @@ class block_courses_overview extends block_base
         {
           return $this->content;
         }
- 
+        
         // check custom configs
         $showgrades = false;
+        $showgradableitems = false;
         if (! empty($this->config->column1)) 
         {
             if ($this->config->column1 != 'unchecked')
@@ -29,9 +30,16 @@ class block_courses_overview extends block_base
                 $showgrades = true;
             }
         }
+        if (! empty($this->config->column2)) 
+        {
+            if ($this->config->column1 != 'unchecked')
+            {
+                $showgradableitems = true;
+            }
+        }
         
         // make overview according to custom configs
-        $overview = $this->block_courses_overview_make($showgrades);
+        $overview = $this->block_courses_overview_make($showgrades, $showgradableitems);
         
         // display content        
         $this->content          = new stdClass;
@@ -42,15 +50,15 @@ class block_courses_overview extends block_base
     
     
     
-    private function block_courses_overview_make($showgrades)
+    private function block_courses_overview_make($showgrades, $showgradableitems)
     {
-        $data = $this->block_courses_overview_get_data($showgrades);
-        return $this->block_courses_overview_html($data, $showgrades);
+        $data = $this->block_courses_overview_get_data($showgrades, $showgradableitems);
+        return $this->block_courses_overview_html($data, $showgrades, $showgradableitems);
     }
     
     
     
-    private function block_courses_overview_get_data($showgrades)
+    private function block_courses_overview_get_data($showgrades, $showgradableitems)
     {
         global $USER, $CFG;
         require_once($CFG->dirroot.'/lib/gradelib.php');
@@ -58,6 +66,7 @@ class block_courses_overview extends block_base
         require_once($CFG->dirroot.'/lib/grade/grade_grade.php');
         require_once($CFG->dirroot.'/grade/querylib.php'); 
         
+        // get my courses' fullname and id
         $mycourses = enrol_get_my_courses();
         $data = array();
         foreach($mycourses as $mc)
@@ -69,10 +78,38 @@ class block_courses_overview extends block_base
                 $mycourseoverview['fullname'] = $mc->fullname;
                 if($showgrades)
                 {
+                    // get the grade i got for each course
                     $mycourseoverview[] = grade_get_course_grade($USER->id, $mc->id)->str_grade;
                 }
-                
                 $data[] = $mycourseoverview;
+                if($showgradableitems)
+                {
+                    // get all gradable items for each course
+                    $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
+                    foreach($gradeitems as $gi)
+                    {
+                        // get my grade object for each gradable item
+                        $gradeditem = $gi->get_grade($USER->id);
+                        if($gi->itemtype != 'course')
+                        {
+                            // get my grade for the gradable item out of the gradable object
+                            $longgrade = $gradeditem->finalgrade;
+                            if(! empty($longgrade))
+                            {
+                                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere)
+                                $finalgrade = grade_format_gradevalue($longgrade, $gi, true);
+                            }
+                            else
+                            {
+                                $finalgrade = '-';
+                            }
+                            $mycourseitemoverview = array();
+                            $mycourseitemoverview[] = $gi->itemname;
+                            $mycourseitemoverview[] = $finalgrade;
+                            $data[] = $mycourseitemoverview;
+                        } 
+                    }                     
+                }                 
             }
             catch(exception $e)
             {
@@ -84,7 +121,7 @@ class block_courses_overview extends block_base
     
     
     
-    private function block_courses_overview_html($data, $showgrades)
+    private function block_courses_overview_html($data, $showgrades, $showgradableitems)
     {
         // switch id + fullname in $data to fullnamelink, get back the adjusted $data
         $data = $this->block_courses_overview_link($data);
@@ -129,23 +166,26 @@ class block_courses_overview extends block_base
         $l = count($data);
         for($i = 0; $i < $l; $i++)
         {
-            try
+            if(! empty($data[$i]['id']))
             {
-                $fullnamelink =
-                    html_writer::link   
-                    (
-                        new moodle_url('/course/view.php', array('id' => $data[$i]['id'])),
-                        $data[$i]['fullname'],
-                        array('title' => $data[$i]['fullname'])
-                    );
-                unset($data[$i]['id']);
-                unset($data[$i]['fullname']);
-                // zet de link als eerste in $data - array_unshift doet een prepend ipv append
-                array_unshift($data[$i], $fullnamelink);
-            }
-            catch(exception $e)
-            {
-                return "failed to make links!";
+                try
+                {
+                    $fullnamelink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/course/view.php', array('id' => $data[$i]['id'])),
+                            $data[$i]['fullname'],
+                            array('title' => $data[$i]['fullname'])
+                        );
+                    unset($data[$i]['id']);
+                    unset($data[$i]['fullname']);
+                    // zet de link als eerste in $data - array_unshift doet een prepend ipv append
+                    array_unshift($data[$i], $fullnamelink);
+                }
+                catch(exception $e)
+                {
+                    return "failed to make links!";
+                }
             }
         } 
         return $data;
