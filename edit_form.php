@@ -27,6 +27,7 @@ class block_courses_overview_edit_form extends block_edit_form {
         } */
         $mform->addElement('advcheckbox', 'config_column2', get_string('column2', 'block_courses_overview'));
         $mform->setDefault('config_column2', 'unchecked');
+        // this checkbox for the gradable items column is only enableable if the course grades column is enabled
         $mform->disabledIf('config_column2', 'config_column1', 'eq', 0);//eq = equals, 0 = arraykey = not checked, or in this case 'unchecked'
         $mform->setType('config_column2', PARAM_MULTILANG);
     }
