@@ -1,31 +1,55 @@
 .entirerow
 {
-    float: left;
-    /*width: 580px;*/
-    width:100%;
     padding: 3px;
     margin: 0px;
+    clear: both;
 }
 .entirerow.head
 {
     font-weight: bold;
+    font-size: 130%; /* larger; */
+}
+.block .content .entirerow.head, .block .content .col.head
+{
+    margin: 0px;
+}
+.mainrow 
+{
+    font-weight: bold;
+    font-size: 110%; /* larger; */
 }
 .data.overview.table
 {
     padding: 5px;
     margin: 0px;
-    /*width: 600px;*/
 }
-.col
+.colwrapper
+{
+    float: left;
+}
+.entirerow .col
 {
     padding: 3px;
     margin: 0px;
-    float: left;
-    /*width: 190px;*/
+    padding-left: 10px;
+    padding-right: 60px;
+}
+.entirerow.mainrow .col, .entirerow.head .col
+{
+    padding-left: 0px;
+    padding-right: 60px;
 }
 hr
 {
     clear:both;
     display:block;
     visibility:hidden;
+}
+.col1
+{
+    float: left;
+}
+.col2
+{
+    float: right;
 }

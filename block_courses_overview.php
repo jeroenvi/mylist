@@ -69,10 +69,10 @@ class block_courses_overview extends block_base
         require_once($CFG->dirroot.'/lib/grade/grade_grade.php');
         require_once($CFG->dirroot.'/grade/querylib.php'); 
         
-        // get my courses
-        $mycourses = enrol_get_my_courses('id, shortname, modinfo', 'visible DESC,sortorder ASC');//, $courses_limit)
-        print_object($mycourses);
-        print_object(unserialize($mycourses[7]->modinfo));
+        // get my courses -> also includes modinfo, but not the modname and grade. modinfo has to be serialized, this will make the string into a usable array
+        $mycourses = array();// QUERY
+        $mycourses = enrol_get_my_courses('modinfo');// eventueel summary, enablecompletion missch completionstartonenrol velden van course ook nog ophalen
+        
         // start the array which will hold all overview data
         $data = array();
         foreach($mycourses as $mc)
@@ -85,7 +85,8 @@ class block_courses_overview extends block_base
                 // get my courses' fullname and id
                 // id and fullname values are given a key when added to the array
                 // array items with keys contain values needed to make links
-                // after another function call the fullname and id will be replaced with a link to the course
+                // after another function call the fullname and id will be replaced with a link to the course. 
+                // this link will be added to the array as a value without a key, so i can iterate over the array later
                 $mycourseoverview['id'] = $mc->id;// id en fullname meegeven om links te kunnen maken van de course names. deze met key meegeven om handig op te kunnen halen
                 $mycourseoverview['fullname'] = $mc->fullname;
                 if($this->showcolumngrades)
@@ -97,68 +98,19 @@ class block_courses_overview extends block_base
                 // add the global course data to the complete collection of data
                 $data[] = $mycourseoverview;
                 
+                
                 // ROW: gradable course items
                 if($this->showrowgradableitems)
                 {
-                    
-                    /* $mods = array();
-                    $modnames = array();
-                    $modnamesplural = array();
-                    $modnamesused = array();
-                    // the next function passes these arrays by reference, so theyll get filled by this call
-                    get_all_mods($mc->id, $mods, $modnames, $modnamesplural, $modnamesused);
-                     *//* echo $mods[0]['modname'];
-                    echo $mods[0]['url']->path;
-                    echo $mods[0]['name'];
-                    echo $mods[0]['id']; */
-                    //print_object($mods[]['instances']['scorm'][4]);
-                    require_once($CFG->dirroot.'/lib/modinfolib.php');
-                    require_once($CFG->dirroot.'/lib/conditionlib.php');
-                    ///$cmi = new course_modinfo($mc, $USER->id);
-                    //[modinfo:cm_info:private] => course_modinfo Object
-                    ///$blaid = $mc->id;
-                    ///echo $blaid . ' - ';
-                    //$bla = $cmi->get_cm($blaid);
-                    ///print_object($cmi);//->get_cm($mc->id));//->get_modinfo()->get_url());
-                    
-                    $cmi = get_fast_modinfo($mc, $USER->id);
-                    echo('<br /><br />');
-                    /* $cms = $cmi->get_cms();
-                    $cms41 = $cms[41]; */
-                    $mis = $cmi->get_instances();
-                    foreach($mis as $miss)
-                    {
-                        //$misss = $miss->get_instances();
-                        foreach($miss as $misss)
-                        {
-                            $murl = $misss->get_url();
-                            //echo $murl->out();
-                            //echo $misss->obtain_view_data();
-                            //print_object($misss);
-                            if($misss->completion != 0)
-                            {
-                                echo(   
-                                        html_writer::link   
-                                        (
-                                            $murl,
-                                            $misss->name,
-                                            array('title' => $misss->name)
-                                        )
-                                    );
-                            }
-                        }
-                        //print_r($miss);
-                    }
-                    //print_object('course is object?:' . $cm);
-                    
-                    // get all gradable items for each course
-                    $gradeitems = array();
+                    // get all gradable items (grade_item objects) for each course
+                    $gradeitems = array();// QUERY
                     $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
-                    //print_object($gradeitems);
+                    
+                    // some hassle to get the coursemoduleid
+                    $coursemodinfoarray = unserialize($mc->modinfo);
                     foreach($gradeitems as $gi)
                     {
-                        ///print_object($gi);
-                        // get my grade object for each gradable item
+                        // get my grade object (grade_grade) for each gradable item // QUERY
                         $gradeditem = $gi->get_grade($USER->id);
                         if($gi->itemtype != 'course')
                         {
@@ -168,18 +120,26 @@ class block_courses_overview extends block_base
                             $longgrade = $gradeditem->finalgrade;
                             if(! empty($longgrade))
                             {
-                                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere)
+                                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) // QUERY?
                                 $finalgrade = grade_format_gradevalue($longgrade, $gi, true);
                             }
                             else
                             {
                                 $finalgrade = '-';
                             }
-                            // add gradable item name and grade for it to array, and add that array to data array
-                            ///$mycourseitemoverview[] = $gi->itemname;
-                            // we need entire course to make links for each gradable item
-                            //$mycourseitemoverview['modname'] = ;
-                            //$mycourseitemoverview['modid'] = ;
+                            // add gradable item name, mod (e.q. forum/scorm), and coursemoduleid to create gradableitem link,
+                            // and grade for it to array, and add that array to data array
+                            $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
+                            // some hassle to get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
+                            foreach($coursemodinfoarray as $cmi)
+                            {
+                                // todo: check if these checks are ALWAYS enough and correct
+                                if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
+                                {
+                                    $mycourseitemoverview['gradableitemid'] = $cmi->cm;
+                                    $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
+                                }
+                            }                            
                             $mycourseitemoverview[] = $finalgrade;
                             $data[] = $mycourseitemoverview;
                         } 
@@ -198,7 +158,7 @@ class block_courses_overview extends block_base
     
     private function block_courses_overview_add_grades($userid, $courseid)
     {
-        return grade_get_course_grade($userid, $courseid)->str_grade;
+        return grade_get_course_grade($userid, $courseid)->str_grade;// QUERY
     }
     
     
@@ -214,6 +174,7 @@ class block_courses_overview extends block_base
     private function block_courses_overview_add_html($data)
     {
         $divtable = html_writer::start_tag('div', array('class' => 'data overview table')); 
+        $divtable .= html_writer::start_tag('div', array('class' => 'colwrapper'));
         if ($this->showcolumngrades)
         {
             //language files gebruiken?
@@ -233,15 +194,31 @@ class block_courses_overview extends block_base
         $l = count($data);
         for ($i = 0; $i < $l; $i++)
         {
-            $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow row' . ($i + 2) ));
+            // make row
+            if(! empty($data[$i]['mainrow']))
+            {
+                $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow row' . ($i + 2) ));
+                unset($data[$i]['mainrow']);
+            }
+            else
+            {
+                $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow row' . ($i + 2) ));
+            }
             $l2 = count($data[$i]);
-            //print_object($data);
+            // make columns, or, in other words, 
+            // display extra fields with information within each row 
             for ($i2 = 0; $i2 < $l2; $i2++)
             {
                 $divtable .= html_writer::tag('div', $data[$i][$i2], array('class' => 'coursedata col row' . ($i + 2) . ' col' . ($i2 + 1) )); 
             }
+            // close row
             $divtable .= html_writer::end_tag('div');//coursedata entirerow rowx
-        }        
+        }
+        // this added hr element is just for layout purposes: 
+        // we dont know how big the data overview table will be, so we cant simply give widths/heights
+        // just floating makes for correct size, but incorrect placement
+        // hr trick used to get correct size as well as placement. see also in CSS: styles.css
+        $divtable .= html_writer::end_tag('div');//colwrapper
         $divtable .= html_writer::empty_tag('hr');
         $divtable .= html_writer::end_tag('div');//data overview table
         
@@ -259,7 +236,7 @@ class block_courses_overview extends block_base
         for($i = 0; $i < $l; $i++)
         {
             // make link to course - courseid and course fullname are needed
-            if(! empty($data[$i]['id']) && ! empty($data[$i]['fullname']))
+            if(! empty($data[$i]['id']))/// && ! empty($data[$i]['fullname']))
             {
                 try
                 {
@@ -275,18 +252,33 @@ class block_courses_overview extends block_base
                     unset($data[$i]['fullname']);
                     // make the link the first item in the array
                     array_unshift($data[$i], $fullnamelink); // zet de link als eerste in $data - array_unshift doet een prepend ipv append
+                    // add key=>value 'mainrow''true'
+                    // when we surround the data with html, we will use this to give extra class attribute to the row div tag
+                    $data[$i]['mainrow'] = 'true';
                 }
                 catch(exception $e)
                 {
                     return "failed to make links!";
                 }
             }
+            
+            
             // make links to gradable course items - complete gradable item is needed
-            if(! empty($data[$i]['gradableitem']))
+            if(! empty($data[$i]['gradableitemmyname']))/// $$ ! empty($data[$i]['gradableitemid'])$$ ! empty($data[$i]['gradableitemmod']))
             {
                 try
                 {
-                    unset($data[$i]['gradableitem']);
+                    $gradableitemlink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
+                            $data[$i]['gradableitemmyname'],
+                            array('title' => $data[$i]['gradableitemmyname'])
+                        );
+                    unset($data[$i]['gradableitemmyname']);
+                    unset($data[$i]['gradableitemid']); 
+                    unset($data[$i]['gradableitemmod']); 
+                    array_unshift($data[$i], $gradableitemlink);
                 }
                 catch(exception $e)
                 {
