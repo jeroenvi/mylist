@@ -1,4 +1,29 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+* mylist: A table-like overview of my courses, with grades and other additional information.
+* Most logical placement would be at the /my page, as a block in the middle column.
+* Available languages: English and Dutch.
+*
+* @package    block
+* @subpackage courses_overview
+* @copyright  2012 Jeroen
+* @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+*/
 
 class block_courses_overview extends block_base 
 {
@@ -6,6 +31,8 @@ class block_courses_overview extends block_base
     private $showcolumngrades = false;
     private $showrowgradableitems = false;
     
+    
+        
     
     public function init() 
     {
@@ -49,7 +76,14 @@ class block_courses_overview extends block_base
     }
     
     
-    
+    /**
+    * Helper function: 
+    * first call is to a function which gathers all necessary data, 
+    * second call is to a function that makes some of the data (such as courses' names) into clickable links
+    * third call is to a function that puts all the data in a divtable.
+    *
+    * @return String $overview
+    */
     private function block_courses_overview_make_overview()
     {
         $datanolinks = $this->block_courses_overview_make_rows();
@@ -60,7 +94,12 @@ class block_courses_overview extends block_base
     
     
     
-    // get the information wanted for the overview -> depends on settings
+    /**
+    * Function that gets the information that is wanted for the overview.
+    * The settings (suchs as $showcolumngrades) determine what information will be gathered.
+    *
+    * @return Array $data ('raw' data: some text still needs to be transformed to hyperlinks)
+    */ 
     private function block_courses_overview_make_rows()
     {
         global $USER, $CFG;
@@ -69,7 +108,8 @@ class block_courses_overview extends block_base
         require_once($CFG->dirroot.'/lib/grade/grade_grade.php');
         require_once($CFG->dirroot.'/grade/querylib.php'); 
         
-        // get my courses -> also includes modinfo, but not the modname and grade. modinfo has to be serialized, this will make the string into a usable array
+        // get my courses -> also includes modinfo, but not the modname and grade. 
+        // modinfo has to be unserialized, this will make the string into a usable array
         $mycourses = array();// QUERY
         $mycourses = enrol_get_my_courses('modinfo');// eventueel summary, enablecompletion missch completionstartonenrol velden van course ook nog ophalen
         
@@ -80,70 +120,13 @@ class block_courses_overview extends block_base
             try
             {
                 // ROW: course
-                // row array, which will contain global course data
-                $mycourseoverview = array();// later wil ik array_unshift gebruiken dus liever een array dan een object, dus geen: $mycourseoverview = new stdClass;
-                // get my courses' fullname and id
-                // id and fullname values are given a key when added to the array
-                // array items with keys contain values needed to make links
-                // after another function call the fullname and id will be replaced with a link to the course. 
-                // this link will be added to the array as a value without a key, so i can iterate over the array later
-                $mycourseoverview['id'] = $mc->id;// id en fullname meegeven om links te kunnen maken van de course names. deze met key meegeven om handig op te kunnen halen
-                $mycourseoverview['fullname'] = $mc->fullname;
-                if($this->showcolumngrades)
-                {
-                    // get the grade i got for each course
-                    // add it to the global course data
-                    $mycourseoverview[] = $this->block_courses_overview_add_grades($USER->id, $mc->id);
-                }
-                // add the global course data to the complete collection of data
-                $data[] = $mycourseoverview;
-                
+                $data = $this->block_courses_overview_add_row_courses($mc, $data);                     
+                                
                 
                 // ROW: gradable course items
                 if($this->showrowgradableitems)
                 {
-                    // get all gradable items (grade_item objects) for each course
-                    $gradeitems = array();// QUERY
-                    $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
-                    
-                    // some hassle to get the coursemoduleid
-                    $coursemodinfoarray = unserialize($mc->modinfo);
-                    foreach($gradeitems as $gi)
-                    {
-                        // get my grade object (grade_grade) for each gradable item // QUERY
-                        $gradeditem = $gi->get_grade($USER->id);
-                        if($gi->itemtype != 'course')
-                        {
-                            // row array, which will contain gradable course item data
-                            $mycourseitemoverview = array();
-                            // get my grade for the gradable item out of the gradable object
-                            $longgrade = $gradeditem->finalgrade;
-                            if(! empty($longgrade))
-                            {
-                                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) // QUERY?
-                                $finalgrade = grade_format_gradevalue($longgrade, $gi, true);
-                            }
-                            else
-                            {
-                                $finalgrade = '-';
-                            }
-                            // add gradable item name, mod (e.q. forum/scorm), and coursemoduleid to create gradableitem link,
-                            // and grade for it to array, and add that array to data array
-                            $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
-                            // some hassle to get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
-                            foreach($coursemodinfoarray as $cmi)
-                            {
-                                // todo: check if these checks are ALWAYS enough and correct
-                                if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
-                                {
-                                    $mycourseitemoverview['gradableitemid'] = $cmi->cm;
-                                    $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
-                                }
-                            }                            
-                            $mycourseitemoverview[] = $finalgrade;
-                            $data[] = $mycourseitemoverview;
-                        } 
-                    }                     
+                    $data = $this->block_courses_overview_add_row_gradeable_items($mc, $data);                     
                 }                 
             }
             catch(exception $e)
@@ -155,22 +138,127 @@ class block_courses_overview extends block_base
     }
     
     
-    
-    private function block_courses_overview_add_grades($userid, $courseid)
+    /**
+    * Column function
+    * Function that adds grade information to each row.
+    * Grade information is a field in a row.
+    * All grade information together can also be considered to be a column 
+    *
+    * @param int $userid
+    * @param int $courseid
+    * @return float $coursegrade
+    */
+    private function block_courses_overview_add_column_grades($userid, $courseid)
     {
-        return grade_get_course_grade($userid, $courseid)->str_grade;// QUERY
+        // normally the function below could return an array.
+        // but because $courseid is not an array and not empty,
+        // a reset on the array is returned, returning the first object and of that, the first variable,
+        // which is $grade_grade->finalgrade. could also return false.
+        // grade_grade's finalgrade attribute is a float
+        $coursegrade = grade_get_course_grade($userid, $courseid)->str_grade;// QUERY
+        return $coursegrade;
+    }
+    
+    
+    /**
+    * Row function
+    * Function that adds gradeable items as rows
+    *
+    * @param stdClass Object course
+    * @param Array $data 
+    * @return Array $data (with course info)
+    */
+    private function block_courses_overview_add_row_courses($mc, $data)
+    {
+        // row array, which will contain global course data
+        global $USER;
+        $mycourseoverview = array();// later wil ik array_unshift gebruiken dus liever een array dan een object, dus geen: $mycourseoverview = new stdClass;
+        // get my courses' fullname and id
+        // id and fullname values are given a key when added to the array
+        // array items with keys contain values needed to make links
+        // after another function call the fullname and id will be replaced with a link to the course. 
+        // this link will be added to the array as a value without a key, so i can iterate over the array later
+        $mycourseoverview['id'] = $mc->id;// id en fullname meegeven om links te kunnen maken van de course names. deze met key meegeven om handig op te kunnen halen
+        $mycourseoverview['fullname'] = $mc->fullname;
+        if($this->showcolumngrades)
+        {
+            // get the grade i got for each course
+            // add it to the global course data
+            $mycourseoverview[] = $this->block_courses_overview_add_column_grades($USER->id, $mc->id);
+        }
+        // add the global course data to the complete collection of data
+        $data[] = $mycourseoverview;
+        return $data;
     }
     
     
     
-    private function block_courses_overview_add_gradeable_items()
+    /**
+    * Row function
+    * Function that adds gradeable items as rows
+    *
+    * @param stdClass Object course
+    * @param Array $data 
+    * @return Array $data (with gradable item info)
+    */
+    private function block_courses_overview_add_row_gradeable_items($mc, $data)
     {
-    
+        // get all gradable items (grade_item objects) for each course
+        global $USER;
+        $gradeitems = array();// QUERY
+        $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
+        // some hassle to get the coursemoduleid and mod's name
+        // we need this later to know which coursemodule id matches which grade
+        $coursemodinfoarray = unserialize($mc->modinfo);
+        foreach($gradeitems as $gi)
+        {
+            // get my grade object (grade_grade) for each gradable item // QUERY
+            $gradeditem = $gi->get_grade($USER->id);
+            if($gi->itemtype != 'course')
+            {
+                // row array, which will contain gradable course item data
+                $mycourseitemoverview = array();
+                // get my grade for the gradable item out of the gradable object
+                $longgrade = $gradeditem->finalgrade;
+                if(! empty($longgrade))
+                {
+                    // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) // QUERY?
+                    $finalgrade = grade_format_gradevalue($longgrade, $gi, true);
+                }
+                else
+                {
+                    $finalgrade = '-';
+                }
+                // add gradable item name, mod (e.q. forum/scorm), and coursemoduleid to create gradableitem link,
+                // and add grade for it to array, 
+                // and add that array to data array
+                $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
+                // some hassle to get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
+                foreach($coursemodinfoarray as $cmi)
+                {
+                    // todo: check if these checks are ALWAYS enough and correct
+                    if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
+                    {
+                        $mycourseitemoverview['gradableitemid'] = $cmi->cm;
+                        $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
+                    }
+                }                            
+                $mycourseitemoverview[] = $finalgrade;
+                $data[] = $mycourseitemoverview;
+            } 
+        }
+        return $data;
     }
     
     
-    
-    // surround data and links with html -> put in divtable
+    /**
+    * Function that surrounds the gathered data (incl. links) with html.
+    * Data gets surrounded by divs,
+    * with class attributes so that CSS can make it look like a table.
+    *
+    * @param Array $data
+    * @return String $divtable (html divtable containing the info from $data)
+    */
     private function block_courses_overview_add_html($data)
     {
         $divtable = html_writer::start_tag('div', array('class' => 'data overview table')); 
@@ -226,9 +314,14 @@ class block_courses_overview extends block_base
     }
     
     
-    
-    // switch id + fullname in $data to fullnamelink, get back the adjusted $data
-    // make some other text into links as well
+    /**
+    * Function that makes links out of some data-items.
+    * For example: switch courses' id + fullname from $data to fullnamelink, and return the adjusted $data.
+    * Makes some other text into links as well.
+    *
+    * @param Array $data (with raw text)
+    * @return Array $data (with links)
+    */
     private function block_courses_overview_make_links($data)
     {
         global $DB, $CFG, $USER, $OUTPUT;
