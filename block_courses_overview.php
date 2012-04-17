@@ -70,8 +70,9 @@ class block_courses_overview extends block_base
         require_once($CFG->dirroot.'/grade/querylib.php'); 
         
         // get my courses
-        //$mycourses = enrol_get_my_courses();
         $mycourses = enrol_get_my_courses('id, shortname, modinfo', 'visible DESC,sortorder ASC');//, $courses_limit)
+        print_object($mycourses);
+        print_object(unserialize($mycourses[7]->modinfo));
         // start the array which will hold all overview data
         $data = array();
         foreach($mycourses as $mc)
@@ -121,9 +122,33 @@ class block_courses_overview extends block_base
                     ///print_object($cmi);//->get_cm($mc->id));//->get_modinfo()->get_url());
                     
                     $cmi = get_fast_modinfo($mc, $USER->id);
-                    $cms = $cmi->get_cms();
-                    $cms41 = $cms[41];
-                    print_object();
+                    echo('<br /><br />');
+                    /* $cms = $cmi->get_cms();
+                    $cms41 = $cms[41]; */
+                    $mis = $cmi->get_instances();
+                    foreach($mis as $miss)
+                    {
+                        //$misss = $miss->get_instances();
+                        foreach($miss as $misss)
+                        {
+                            $murl = $misss->get_url();
+                            //echo $murl->out();
+                            //echo $misss->obtain_view_data();
+                            //print_object($misss);
+                            if($misss->completion != 0)
+                            {
+                                echo(   
+                                        html_writer::link   
+                                        (
+                                            $murl,
+                                            $misss->name,
+                                            array('title' => $misss->name)
+                                        )
+                                    );
+                            }
+                        }
+                        //print_r($miss);
+                    }
                     //print_object('course is object?:' . $cm);
                     
                     // get all gradable items for each course
