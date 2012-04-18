@@ -32,7 +32,6 @@ class block_courses_overview extends block_base
     private $showrowgradableitems = false;
     
     
-        
     
     public function init() 
     {
@@ -50,16 +49,16 @@ class block_courses_overview extends block_base
         }
         
         // check custom configs, to see which data to show
-        if (! empty($this->config->column1)) 
+        if (! empty($this->config->cfg_col_grade)) 
         {
-            if ($this->config->column1 != 'unchecked')
+            if ($this->config->cfg_col_grade != 'unchecked')
             {
                 $this->showcolumngrades = true;
             }
         }
-        if (! empty($this->config->column2)) 
+        if (! empty($this->config->cfg_row_gradeableitems)) 
         {
-            if ($this->config->column1 != 'unchecked')
+            if ($this->config->cfg_row_gradeableitems != 'unchecked')
             {
                 $this->showrowgradableitems = true;
             }
@@ -76,6 +75,7 @@ class block_courses_overview extends block_base
     }
     
     
+    
     /**
     * Helper function: 
     * first call is to a function which gathers all necessary data, 
@@ -86,7 +86,7 @@ class block_courses_overview extends block_base
     */
     private function block_courses_overview_make_overview()
     {
-        $datanolinks = $this->block_courses_overview_make_rows();
+        $datanolinks = $this->block_courses_overview_make_rows(); //make_rows function will call make_column_xxx()-like functions
         $datalinks = $this->block_courses_overview_make_links($datanolinks);
         $overview = $this->block_courses_overview_add_html($datalinks);
         return $overview;
@@ -138,6 +138,7 @@ class block_courses_overview extends block_base
     }
     
     
+    
     /**
     * Column function
     * Function that adds grade information to each row.
@@ -146,18 +147,42 @@ class block_courses_overview extends block_base
     *
     * @param int $userid
     * @param int $courseid
-    * @return float $coursegrade
+    * @return float $coursegrade or $itemgrade
     */
-    private function block_courses_overview_add_column_grades($userid, $courseid)
+    private function block_courses_overview_add_column_grades($userid = null, $courseid = null, $gradeitem = null)
     {
-        // normally the function below could return an array.
-        // but because $courseid is not an array and not empty,
-        // a reset on the array is returned, returning the first object and of that, the first variable,
-        // which is $grade_grade->finalgrade. could also return false.
-        // grade_grade's finalgrade attribute is a float
-        $coursegrade = grade_get_course_grade($userid, $courseid)->str_grade;// QUERY
-        return $coursegrade;
+        // we want the grades for the courses
+        if($userid != null && $courseid != null)
+        {
+            // normally the function below could return an array.
+            // but because $courseid is not an array and not empty,
+            // a reset on the array is returned, returning the first object and of that, the first variable,
+            // which is $grade_grade->finalgrade. could also return false.
+            // grade_grade's finalgrade attribute is a float
+            $coursegrade = grade_get_course_grade($userid, $courseid)->str_grade;// QUERY
+            return $coursegrade;
+        }
+        // we want the grades for the gradeableitems
+        if($userid != null && $gradeitem != null)
+        {
+            // get my grade object (grade_grade) for each gradable item // QUERY
+            $gradeditem = $gradeitem->get_grade($userid);
+            // add grade for gradeableitem to array,
+            // get my grade for the gradable item out of the gradable object
+            $longgrade = $gradeditem->finalgrade;
+            if(! empty($longgrade))
+            {
+                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) // QUERY?
+                $itemgrade = grade_format_gradevalue($longgrade, $gradeitem, true);
+            }
+            else
+            {
+                $itemgrade = '-';
+            }
+            return $itemgrade;
+        }
     }
+    
     
     
     /**
@@ -212,25 +237,13 @@ class block_courses_overview extends block_base
         $coursemodinfoarray = unserialize($mc->modinfo);
         foreach($gradeitems as $gi)
         {
-            // get my grade object (grade_grade) for each gradable item // QUERY
-            $gradeditem = $gi->get_grade($USER->id);
+            
             if($gi->itemtype != 'course')
             {
                 // row array, which will contain gradable course item data
                 $mycourseitemoverview = array();
-                // get my grade for the gradable item out of the gradable object
-                $longgrade = $gradeditem->finalgrade;
-                if(! empty($longgrade))
-                {
-                    // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) // QUERY?
-                    $finalgrade = grade_format_gradevalue($longgrade, $gi, true);
-                }
-                else
-                {
-                    $finalgrade = '-';
-                }
+                
                 // add gradable item name, mod (e.q. forum/scorm), and coursemoduleid to create gradableitem link,
-                // and add grade for it to array, 
                 // and add that array to data array
                 $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
                 // some hassle to get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
@@ -242,13 +255,18 @@ class block_courses_overview extends block_base
                         $mycourseitemoverview['gradableitemid'] = $cmi->cm;
                         $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
                     }
-                }                            
-                $mycourseitemoverview[] = $finalgrade;
+                }
+                if($this->showcolumngrades)
+                {
+                    $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
+                    $mycourseitemoverview[] = $grade;
+                }
                 $data[] = $mycourseitemoverview;
             } 
         }
         return $data;
     }
+    
     
     
     /**
@@ -269,14 +287,14 @@ class block_courses_overview extends block_base
             //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
             //bij rows en columns first/last toevoegen aan firsts en lasts?
             $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
-            $divtable .= html_writer::tag('div', 'course', array('class' => 'head col row1 col1')); 
-            $divtable .= html_writer::tag('div', 'grade', array('class' => 'head col row1 col2')); 
+            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'head col row1 col1')); 
+            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'head col row1 col2')); 
             $divtable .= html_writer::end_tag('div');//head entirerow row1 
         }
         else
         {
             $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
-            $divtable .= html_writer::tag('div', 'course', array('class' => 'head col row1 col1')); 
+            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'head col row1 col1')); 
             $divtable .= html_writer::end_tag('div');//head entirerow row1 
         }
         $l = count($data);
@@ -312,6 +330,7 @@ class block_courses_overview extends block_base
         
         return $divtable;
     }
+    
     
     
     /**
