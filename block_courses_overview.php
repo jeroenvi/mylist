@@ -30,6 +30,7 @@ class block_courses_overview extends block_base
     // data to show: 
     private $showcolumngrades = false;
     private $showrowgradableitems = false;
+    private $showrowrequireditems = false;
     
     
     
@@ -47,7 +48,7 @@ class block_courses_overview extends block_base
         {
           return $this->content;
         }
-        
+                
         // check custom configs, to see which data to show
         if (! empty($this->config->cfg_col_grade)) 
         {
@@ -63,7 +64,13 @@ class block_courses_overview extends block_base
                 $this->showrowgradableitems = true;
             }
         }
-        
+        if (! empty($this->config->cfg_row_requireditems)) 
+        {
+            if ($this->config->cfg_row_requireditems != 'unchecked')
+            {
+                $this->showrowrequireditems = true;
+            }
+        }
         // make overview according to custom configs
         $overview = $this->block_courses_overview_make_overview();
         
@@ -112,7 +119,7 @@ class block_courses_overview extends block_base
         // modinfo has to be unserialized, this will make the string into a usable array
         $mycourses = array();// QUERY
         $mycourses = enrol_get_my_courses('modinfo');// eventueel summary, enablecompletion missch completionstartonenrol velden van course ook nog ophalen
-        
+                
         // start the array which will hold all overview data
         $data = array();
         foreach($mycourses as $mc)
@@ -127,7 +134,13 @@ class block_courses_overview extends block_base
                 if($this->showrowgradableitems)
                 {
                     $data = $this->block_courses_overview_add_row_gradeable_items($mc, $data);                     
-                }                 
+                } 
+
+                // ROW: required course items
+                if($this->showrowrequireditems)
+                {
+                    $data = $this->block_courses_overview_add_row_required_items($mc, $data);
+                }
             }
             catch(exception $e)
             {
@@ -269,6 +282,92 @@ class block_courses_overview extends block_base
     
     
     
+    private function block_courses_overview_add_row_required_items($mc, $data)
+    {
+        // gradable items and required items can overlap. 
+        // thats why its not just possible to add al required items
+        // because then some items could appear twice in the list with course items
+        global $CFG, $USER;
+        require_once($CFG->dirroot.'/lib/gradelib.php');
+        
+        $requireditems = array();
+        
+        // if gradeable items are not shown, items would not appear twice, so the required items can simply be added
+        if(! $this->showrowgradableitems)
+        {
+            $info = new completion_info($mc);
+            $completions = $info->get_completions($USER->id);
+            foreach($completions as $completion)
+            {
+                $criteria = $completion->get_criteria();
+                $details = $criteria->get_details($completion);
+                // put item in array before we add it to $data 
+                // to prevent string offset problems with older versions of php when doing checks later
+                $requireditem = array();
+                $requireditem[] = $details['criteria'];
+                $data[] = $requireditem;
+            }
+        }
+        
+        // if gradeable items are shown, items would appear twice, so get rid of doubles
+        if($this->showrowgradableitems)
+        {
+            $info = new completion_info($mc);
+            $completions = $info->get_completions($USER->id);
+            foreach($completions as $completion)
+            {
+                $criteria = $completion->get_criteria();
+                $details = $criteria->get_details($completion);
+                $requireditem = array();
+                $requireditem[] = $details['criteria'];
+                
+                
+                // all gradeable items can be made into links and have an id
+                // so if there is an id for the required item,
+                // first check if we do not have it already
+                
+                // below is the way we checked which gradeable items are added
+                // we make a variable cm that contains the id for each added gradeableitem
+                $cm = null;
+                $alreadycontains = false;
+                $gradeitems = array();// QUERY
+                $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
+                $coursemodinfoarray = unserialize($mc->modinfo);
+                foreach($gradeitems as $gi)
+                {
+                    if($gi->itemtype != 'course')
+                    {
+                            foreach($coursemodinfoarray as $cmi)
+                            {
+                                if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
+                                {
+                                    // all gradeable items with the $cm id below are added already
+                                    $cm = $cmi->cm;
+                                    // now we make sure we dont add the gradeable items again
+                                    // that means if requireditem with $criteria->moduleinstance is added already dont add it again
+                                    if($criteria->moduleinstance == $cm)
+                                    {
+                                        $alreadycontains = true;
+                                    }
+                                }
+                            }
+                    }
+                }
+                if(! $alreadycontains)
+                {
+                    $data[] = $requireditem;
+                }
+                // completion criteria:
+                // self, criteriatype 1? 
+                // activity, criteriatype 4?
+                // grade, criteriatype 6?
+            }
+        }
+        return $data;
+    }
+    
+    
+    
     /**
     * Function that surrounds the gathered data (incl. links) with html.
     * Data gets surrounded by divs,
@@ -301,7 +400,7 @@ class block_courses_overview extends block_base
         for ($i = 0; $i < $l; $i++)
         {
             // make row
-            if(! empty($data[$i]['mainrow']))
+            if(is_array($data[$i]) && isset($data[$i]['mainrow']))
             {
                 $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow row' . ($i + 2) ));
                 unset($data[$i]['mainrow']);
@@ -348,7 +447,7 @@ class block_courses_overview extends block_base
         for($i = 0; $i < $l; $i++)
         {
             // make link to course - courseid and course fullname are needed
-            if(! empty($data[$i]['id']))/// && ! empty($data[$i]['fullname']))
+            if(is_array($data[$i]) && isset($data[$i]['id']))/// && ! empty($data[$i]['fullname']))
             {
                 try
                 {
@@ -376,7 +475,7 @@ class block_courses_overview extends block_base
             
             
             // make links to gradable course items - complete gradable item is needed
-            if(! empty($data[$i]['gradableitemmyname']))/// $$ ! empty($data[$i]['gradableitemid'])$$ ! empty($data[$i]['gradableitemmod']))
+            if(is_array($data[$i]) && isset($data[$i]['gradableitemmyname']))/// $$ ! empty($data[$i]['gradableitemid'])$$ ! empty($data[$i]['gradableitemmod']))
             {
                 try
                 {

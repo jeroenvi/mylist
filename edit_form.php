@@ -1,6 +1,7 @@
 <?php
  
-class block_courses_overview_edit_form extends block_edit_form {
+class block_courses_overview_edit_form extends block_edit_form 
+{
  
     protected function specific_definition($mform) 
     {
@@ -28,6 +29,14 @@ class block_courses_overview_edit_form extends block_edit_form {
         /* 
         // this checkbox for the gradable items column is only enableable if the course grades column is enabled
         $mform->disabledIf('config_cfg_row_gradeableitems', 'config_cfg_col_grade', 'eq', 0);//eq = equals, 0 = arraykey = not checked, or in this case 'unchecked'
-         */$mform->setType('config_cfg_row_gradeableitems', PARAM_MULTILANG);
+        */$mform->setType('config_cfg_row_gradeableitems', PARAM_MULTILANG);
+         
+        // checkbox for row gradeableitems
+        $mform->addElement('advcheckbox', 'config_cfg_row_requireditems', get_string('cfg_row_requireditems', 'block_courses_overview'));
+        $mform->setDefault('config_cfg_row_requireditems', 'unchecked');
+        /* 
+        // this checkbox for the gradable items column is only enableable if the course grades column is enabled
+        $mform->disabledIf('config_cfg_row_requireditems', 'config_cfg_col_grade', 'eq', 0);//eq = equals, 0 = arraykey = not checked, or in this case 'unchecked'
+         */$mform->setType('config_cfg_row_requireditems', PARAM_MULTILANG); 
     }
 }
