@@ -29,7 +29,7 @@ class block_courses_overview extends block_base
 {
     // data to show: 
     private $showcolumngrades = false;
-    private $showrowgradableitems = false;
+    private $showrowgradeableitems = false;
     private $showrowrequireditems = false;
     
     
@@ -61,7 +61,7 @@ class block_courses_overview extends block_base
         {
             if ($this->config->cfg_row_gradeableitems != 'unchecked')
             {
-                $this->showrowgradableitems = true;
+                $this->showrowgradeableitems = true;
             }
         }
         if (! empty($this->config->cfg_row_requireditems)) 
@@ -131,7 +131,7 @@ class block_courses_overview extends block_base
                                 
                 
                 // ROW: gradable course items
-                if($this->showrowgradableitems)
+                if($this->showrowgradeableitems)
                 {
                     $data = $this->block_courses_overview_add_row_gradeable_items($mc, $data);                     
                 } 
@@ -162,9 +162,12 @@ class block_courses_overview extends block_base
     * @param int $courseid
     * @return float $coursegrade or $itemgrade
     */
-    private function block_courses_overview_add_column_grades($userid = null, $courseid = null, $gradeitem = null)
+    private function block_courses_overview_add_column_grades($userid = null, $courseid = null, $gradeitem = null, $course = null)
     {
-        // we want the grades for the courses
+        // check for which rows we are getting grades, 
+        // by checking which parameters were given when calling add_column_grades
+        
+        // we want the grades for the courses:
         if($userid != null && $courseid != null)
         {
             // normally the function below could return an array.
@@ -175,7 +178,14 @@ class block_courses_overview extends block_base
             $coursegrade = grade_get_course_grade($userid, $courseid)->str_grade;// QUERY
             return $coursegrade;
         }
-        // we want the grades for the gradeableitems
+        
+        // we want the grades for the gradeableitems, or
+        // we want the grade for the requireditems: 
+        // note: required items with grades are gradeable items
+        // when gradeable items are shown already then gradeable items will contain the gradeable required items too
+        // in the last case, add_row_required_items will not call add_column_grades
+        // but when gradebale items are not shown, add_row_required_items will call this function,
+        // but just for items that are both gradeable and required
         if($userid != null && $gradeitem != null)
         {
             // get my grade object (grade_grade) for each gradable item // QUERY
@@ -293,7 +303,7 @@ class block_courses_overview extends block_base
         $requireditems = array();
         
         // if gradeable items are not shown, items would not appear twice, so the required items can simply be added
-        if(! $this->showrowgradableitems)
+        if(! $this->showrowgradeableitems)
         {
             $info = new completion_info($mc);
             $completions = $info->get_completions($USER->id);
@@ -305,12 +315,46 @@ class block_courses_overview extends block_base
                 // to prevent string offset problems with older versions of php when doing checks later
                 $requireditem = array();
                 $requireditem[] = $details['criteria'];
+                
+                // we want to add grades for items that are required (and gradeable)
+                if($this->showcolumngrades)
+                {
+                    // we have required items by their id, through $criteria->moduleinstance
+                    // we need to get the grades for these required items through grade_items
+                    // unfortunately, we dont know which required item is which grade_item directly
+                    // the course contains information that can connect the two, in modinfo
+                    $coursemodinfoarray = unserialize($mc->modinfo);
+                    $gradeitems = array();// QUERY
+                    $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
+                    foreach($gradeitems as $gi)
+                    {
+                        if($gi->itemtype != 'course')
+                        {
+                            foreach($coursemodinfoarray as $cmi)
+                            {
+                                // here we connect the moduleinstance id with the right grade_item (with help of course's modinfo)
+                                // its done in a for loop, so we get all moduleinstances here
+                                // we get all moduleinstances for every 1 required item (this all is surrounded by another for loop to cycle through every required item)
+                                if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
+                                {
+                                    // now we check for each moduleinstance id (which we now know the right grade_item for), 
+                                    // if its the current required items moduleinstance id
+                                    if($criteria->moduleinstance == $cmi->cm)
+                                    {
+                                        $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
+                                        $requireditem[] = $grade;
+                                    } 
+                                }
+                            }
+                        }
+                    }
+                }
                 $data[] = $requireditem;
             }
         }
         
         // if gradeable items are shown, items would appear twice, so get rid of doubles
-        if($this->showrowgradableitems)
+        if($this->showrowgradeableitems)
         {
             $info = new completion_info($mc);
             $completions = $info->get_completions($USER->id);
@@ -320,8 +364,7 @@ class block_courses_overview extends block_base
                 $details = $criteria->get_details($completion);
                 $requireditem = array();
                 $requireditem[] = $details['criteria'];
-                
-                
+                                
                 // all gradeable items can be made into links and have an id
                 // so if there is an id for the required item,
                 // first check if we do not have it already
