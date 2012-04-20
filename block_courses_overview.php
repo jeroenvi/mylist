@@ -228,6 +228,12 @@ class block_courses_overview extends block_base
         // this link will be added to the array as a value without a key, so i can iterate over the array later
         $mycourseoverview['id'] = $mc->id;// id en fullname meegeven om links te kunnen maken van de course names. deze met key meegeven om handig op te kunnen halen
         $mycourseoverview['fullname'] = $mc->fullname;
+        // courses with visible attribute set to 0 are only returned by enrol_get_my_courses if role is teacher
+        // the hidden course needs to be displayed differently (e.g. see through / greyed out a little)
+        if($mc->visible == 0)
+        {
+            $mycourseoverview['ghost'] = true;
+        }
         if($this->showcolumngrades)
         {
             // get the grade i got for each course
@@ -263,28 +269,36 @@ class block_courses_overview extends block_base
             
             if($gi->itemtype != 'course')
             {
-                // row array, which will contain gradable course item data
-                $mycourseitemoverview = array();
-                
-                // add gradable item name, mod (e.q. forum/scorm), and coursemoduleid to create gradableitem link,
-                // and add that array to data array
-                $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
                 // some hassle to get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
                 foreach($coursemodinfoarray as $cmi)
                 {
                     // todo: check if these checks are ALWAYS enough and correct
                     if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
                     {
-                        $mycourseitemoverview['gradableitemid'] = $cmi->cm;
-                        $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
+                        // dont display hidden items
+                        if(empty($cmi->completionview))// || $cmi->completionview != 1)
+                        {
+                            // row array, which will contain gradable course item data
+                            $mycourseitemoverview = array();
+                            // add gradable item name, mod (e.q. forum/scorm), and coursemoduleid to create gradableitem link,
+                            // and later add that array to data array
+                            $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
+                            $mycourseitemoverview['gradableitemid'] = $cmi->cm;
+                            $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
+                            // some items are greyed out / disabled
+                            if(!empty($cmi->showavailability) && $cmi->showavailability == 1)
+                            {
+                                $mycourseitemoverview['greyedout'] = true;
+                            }
+                            if($this->showcolumngrades)
+                            {
+                                $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
+                                $mycourseitemoverview[] = $grade;
+                            }
+                            $data[] = $mycourseitemoverview;
+                        }
                     }
                 }
-                if($this->showcolumngrades)
-                {
-                    $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
-                    $mycourseitemoverview[] = $grade;
-                }
-                $data[] = $mycourseitemoverview;
             } 
         }
         return $data;
@@ -300,8 +314,6 @@ class block_courses_overview extends block_base
         global $CFG, $USER;
         require_once($CFG->dirroot.'/lib/gradelib.php');
         
-        $requireditems = array();
-        
         // if gradeable items are not shown, items would not appear twice, so the required items can simply be added
         if(! $this->showrowgradeableitems)
         {
@@ -311,11 +323,16 @@ class block_courses_overview extends block_base
             {
                 $criteria = $completion->get_criteria();
                 $details = $criteria->get_details($completion);
-                // put item in array before we add it to $data 
-                // to prevent string offset problems with older versions of php when doing checks later
-                $requireditem = array();
-                $requireditem[] = $details['criteria'];
                 
+                // for the moment, add all reuired items except for the ones that are also gradeable 
+                if(! $criteria instanceof completion_criteria_activity)// completion_criteria_activity Object
+                {
+                    // put item in array before we add it to $data 
+                    // to prevent string offset problems with older versions of php when doing checks later
+                    $requireditem = array();
+                    $requireditem[] = $details['criteria'];
+                    $data[] = $requireditem;
+                }                            
                 // we want to add grades for items that are required (and gradeable)
                 if($this->showcolumngrades)
                 {
@@ -341,15 +358,29 @@ class block_courses_overview extends block_base
                                     // if its the current required items moduleinstance id
                                     if($criteria->moduleinstance == $cmi->cm)
                                     {
-                                        $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
-                                        $requireditem[] = $grade;
+                                        // dont display hidden items
+                                        if(empty($cmi->completionview))// || $cmi->completionview != 1)
+                                        {
+                                            $requireditem = array();
+                                            $requireditem[] = $details['criteria'];
+                                            // some items are greyed out / disabled
+                                            if(!empty($cmi->showavailability) && $cmi->showavailability == 1)
+                                            {
+                                                $requireditem['greyedout'] = true;
+                                            }
+                                            if($this->showcolumngrades)
+                                            {
+                                                $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
+                                                $requireditem[] = $grade;
+                                            }
+                                            $data[] = $requireditem;
+                                        }
                                     } 
                                 }
                             }
                         }
                     }
                 }
-                $data[] = $requireditem;
             }
         }
         
@@ -380,20 +411,20 @@ class block_courses_overview extends block_base
                 {
                     if($gi->itemtype != 'course')
                     {
-                            foreach($coursemodinfoarray as $cmi)
+                        foreach($coursemodinfoarray as $cmi)
+                        {
+                            if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
                             {
-                                if($cmi->id == $gi->iteminstance && $cmi->mod == $gi->itemmodule)
+                                // all gradeable items with the $cm id below are added already
+                                $cm = $cmi->cm;
+                                // now we make sure we dont add the gradeable items again
+                                // that means if requireditem with $criteria->moduleinstance is added already dont add it again
+                                if($criteria->moduleinstance == $cm)
                                 {
-                                    // all gradeable items with the $cm id below are added already
-                                    $cm = $cmi->cm;
-                                    // now we make sure we dont add the gradeable items again
-                                    // that means if requireditem with $criteria->moduleinstance is added already dont add it again
-                                    if($criteria->moduleinstance == $cm)
-                                    {
-                                        $alreadycontains = true;
-                                    }
+                                    $alreadycontains = true;
                                 }
                             }
+                        }
                     }
                 }
                 if(! $alreadycontains)
@@ -443,14 +474,34 @@ class block_courses_overview extends block_base
         for ($i = 0; $i < $l; $i++)
         {
             // make row
+            // if its the course row:
             if(is_array($data[$i]) && isset($data[$i]['mainrow']))
             {
-                $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow row' . ($i + 2) ));
-                unset($data[$i]['mainrow']);
+                // if its a hidden course, for which user has teacher role
+                if(isset($data[$i]['ghost']))// && $data[$i]['ghost'] == true)
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow ghost row' . ($i + 2) ));
+                    unset($data[$i]['ghost']);
+                    unset($data[$i]['mainrow']);
+                }
+                else
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow row' . ($i + 2) ));
+                    unset($data[$i]['mainrow']);
+                }
             }
+            // if its not a course row its a gradeable and/or required item
             else
             {
-                $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow row' . ($i + 2) ));
+                if(is_array($data[$i]) && isset($data[$i]['greyedout']))
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow greyedout row' . ($i + 2) ));
+                    unset($data[$i]['greyedout']);
+                }
+                else
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow row' . ($i + 2) ));
+                }
             }
             $l2 = count($data[$i]);
             // make columns, or, in other words, 
@@ -492,52 +543,38 @@ class block_courses_overview extends block_base
             // make link to course - courseid and course fullname are needed
             if(is_array($data[$i]) && isset($data[$i]['id']))/// && ! empty($data[$i]['fullname']))
             {
-                try
-                {
-                    $fullnamelink =
-                        html_writer::link   
-                        (
-                            new moodle_url('/course/view.php', array('id' => $data[$i]['id'])),
-                            $data[$i]['fullname'],
-                            array('title' => $data[$i]['fullname'])
-                        );
-                    // remove the items in the array that we dont need anymore
-                    unset($data[$i]['id']);
-                    unset($data[$i]['fullname']);
-                    // make the link the first item in the array
-                    array_unshift($data[$i], $fullnamelink); // zet de link als eerste in $data - array_unshift doet een prepend ipv append
-                    // add key=>value 'mainrow''true'
-                    // when we surround the data with html, we will use this to give extra class attribute to the row div tag
-                    $data[$i]['mainrow'] = 'true';
-                }
-                catch(exception $e)
-                {
-                    return "failed to make links!";
-                }
+                $fullnamelink =
+                    html_writer::link   
+                    (
+                        new moodle_url('/course/view.php', array('id' => $data[$i]['id'])),
+                        $data[$i]['fullname'],
+                        array('title' => $data[$i]['fullname'])
+                    );
+                // remove the items in the array that we dont need anymore
+                unset($data[$i]['id']);
+                unset($data[$i]['fullname']);
+                // make the link the first item in the array
+                array_unshift($data[$i], $fullnamelink); // zet de link als eerste in $data - array_unshift doet een prepend ipv append
+                // add key=>value 'mainrow''true'
+                // when we surround the data with html, we will use this to give extra class attribute to the row div tag
+                $data[$i]['mainrow'] = 'true';
             }
             
             
             // make links to gradable course items - complete gradable item is needed
             if(is_array($data[$i]) && isset($data[$i]['gradableitemmyname']))/// $$ ! empty($data[$i]['gradableitemid'])$$ ! empty($data[$i]['gradableitemmod']))
             {
-                try
-                {
-                    $gradableitemlink =
-                        html_writer::link   
-                        (
-                            new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
-                            $data[$i]['gradableitemmyname'],
-                            array('title' => $data[$i]['gradableitemmyname'])
-                        );
-                    unset($data[$i]['gradableitemmyname']);
-                    unset($data[$i]['gradableitemid']); 
-                    unset($data[$i]['gradableitemmod']); 
-                    array_unshift($data[$i], $gradableitemlink);
-                }
-                catch(exception $e)
-                {
-                    return "failed to make links!";
-                }
+                $gradableitemlink =
+                    html_writer::link   
+                    (
+                        new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
+                        $data[$i]['gradableitemmyname'],
+                        array('title' => $data[$i]['gradableitemmyname'])
+                    );
+                unset($data[$i]['gradableitemmyname']);
+                unset($data[$i]['gradableitemid']); 
+                unset($data[$i]['gradableitemmod']); 
+                array_unshift($data[$i], $gradableitemlink);
             }
         } 
         return $data;

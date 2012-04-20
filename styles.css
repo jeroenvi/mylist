@@ -53,3 +53,11 @@ hr
 {
     float: right;
 }
+.ghost, .greyedout
+{
+    opacity: 0.3;
+}
+/* .nodisplay
+{
+    opacity: .1;
+} */
