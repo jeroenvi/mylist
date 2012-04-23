@@ -53,6 +53,10 @@ hr
 {
     float: right;
 }
+.col3
+{
+    float: right;
+}
 .ghost, .greyedout
 {
     opacity: 0.3;
