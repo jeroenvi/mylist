@@ -258,6 +258,10 @@ class block_courses_overview extends block_base
             // add it to the global course data
             $mycourseoverview[] = $this->block_courses_overview_add_column_grades($USER->id, $mc->id);
         }
+        if($this->showcolumnrequirements)
+        {
+            $mycourseoverview[] = '&nbsp;';
+        }
         // add the global course data to the complete collection of data
         $data[] = $mycourseoverview;
         return $data;
@@ -296,27 +300,14 @@ class block_courses_overview extends block_base
                         $fastmodinfo = get_fast_modinfo($mc);
                         // get the fastmodinfo for the module were currently working with
                         $coursemodule = $fastmodinfo->get_cm($cmi->cm);
-                                    
-                        // dont display hidden items. seems to be like the following:
-                        // sometimes hidden: $coursemodule->completion on 0  
-                        // except when $coursemodule-> showavailability on 1
-                        // always hidden: $cmi->completionview on 1
-                        $completion = -1;
-                        $showavailability = -1;
-                        $completionview = -1;
-                        if(! empty($coursemodule->completion))
-                        {
-                            $completion = $coursemodule->completion;
-                        }
-                        if(! empty($coursemodule->showavailability))
-                        {
-                            $showavailability = $coursemodule->showavailability;
-                        }
-                        if(! empty($cmi->completionview))
-                        {
-                            $completionview = $cmi->completionview;
-                        }
-                        if(($completion != 0 || $showavailability == 1) && $completionview != 1)//((empty($cmi->completionview) || $cmi->completionview == 0) && $coursemodule->showavailability != 0)// && $coursemodule->showavailability != 0)// || $cmi->completionview != 1)
+                                                
+                        // dont display hidden items. 
+                        // normaal: uservisible == 1
+                        // greyed out: showavailability == 1 && uservisible != 1 (give them availability info)
+                        // hidden: the rest (showavailability == 0 && uservisible != 1)
+                        
+                        // not hidden:
+                        if(! ($coursemodule->showavailability == 0 && $coursemodule->uservisible != 1))
                         {
                             // row array, which will contain gradable course item data
                             $mycourseitemoverview = array();
@@ -325,13 +316,12 @@ class block_courses_overview extends block_base
                             $mycourseitemoverview['gradableitemmyname'] = $gi->itemname;
                             $mycourseitemoverview['gradableitemid'] = $cmi->cm;
                             $mycourseitemoverview['gradableitemmod'] = $cmi->mod;
-                            // some items are greyed out / disabled
                             
-                            //print_object($coursemodule);
-                            //if(!empty($cmi->showavailability) && $cmi->showavailability == 1)
-                            if(! $coursemodule->uservisible)
+                            // greyed out / disabled:
+                            if($coursemodule->showavailability == 1 && $coursemodule->uservisible != 1)
                             {
                                 $mycourseitemoverview['greyedout'] = true;
+                                $mycourseitemoverview['availabilityinfo'] = $coursemodule->availableinfo; 
                             }
                             if($this->showcolumngrades)
                             {
@@ -343,6 +333,7 @@ class block_courses_overview extends block_base
                                 // which of the items that are gradeable are also required?
                                 $info = new completion_info($mc);
                                 $completions = $info->get_completions($USER->id);
+                                $hasrequirement = false;
                                 foreach($completions as $completion)
                                 {
                                     $criteria = $completion->get_criteria();
@@ -350,9 +341,14 @@ class block_courses_overview extends block_base
                                     // add requirement column info to each gradeable item that is also required 
                                     if($criteria instanceof completion_criteria_activity && $cmi->cm == $criteria->moduleinstance)
                                     {
+                                        $hasrequirement = true;
                                         $requirement = $this->block_courses_overview_add_column_requirements();
                                         $mycourseitemoverview[] = $requirement;
                                     }
+                                }
+                                if(! $hasrequirement)
+                                {
+                                    $mycourseitemoverview[] = '&nbsp;';// or min-width
                                 }
                             }
                             $data[] = $mycourseitemoverview;
@@ -394,11 +390,11 @@ class block_courses_overview extends block_base
                     $requireditem[] = $details['criteria'];
                     if($this->showcolumnrequirements)
                     {
-                        $requirement = $this->block_courses_overview_add_column_requirements();
                         if($this->showcolumngrades)
                         {
-                            $requireditem[] = '';
+                            $requireditem[] = '&nbsp;';
                         }
+                        $requirement = $this->block_courses_overview_add_column_requirements();
                         $requireditem[] = $requirement;
                     }
                     $data[] = $requireditem;
@@ -431,30 +427,23 @@ class block_courses_overview extends block_base
                                     $coursemodule = $fastmodinfo->get_cm($cmi->cm);
                                     
                                     // dont display hidden items
-                                    //if($cmi->completionview != 1)//$coursemodule->showavailability != 0)// || $cmi->completionview != 1)//empty($cmi->completionview) && 
-                                    $completion = -1;
-                                    $showavailability = -1;
-                                    $completionview = -1;
-                                    if(! empty($coursemodule->completion))
-                                    {
-                                        $completion = $coursemodule->completion;
-                                    }
-                                    if(! empty($coursemodule->showavailability))
-                                    {
-                                        $showavailability = $coursemodule->showavailability;
-                                    }
-                                    if(! empty($cmi->completionview))
-                                    {
-                                        $completionview = $cmi->completionview;
-                                    }
-                                    if(($completion != 0 || $showavailability == 1) && $completionview != 1)
+                                    // normaal: uservisible == 1
+                                    // greyed out: showavailability == 1 && uservisible != 1 (give them availability info)
+                                    // hidden: the rest (showavailability == 0 && uservisible != 1)
+                        
+                                    // not hidden:
+                                    if(! ($coursemodule->showavailability == 0 && $coursemodule->uservisible != 1))
                                     {
                                         $requireditem = array();
-                                        $requireditem[] = $details['criteria'];
-                                        // some items are greyed out / disabled
-                                        if(! $coursemodule->uservisible)
+                                        $requireditem['requiredgradableitem'] = $details['criteria'];
+                                        $requireditem['requiredgradableitemid'] = $cmi->cm; 
+                                        $requireditem['requiredgradableitemmod'] = $cmi->mod;
+                                        // greyed out / disabled:
+                                        if($coursemodule->showavailability == 1 && $coursemodule->uservisible != 1)
                                         {
                                             $requireditem['greyedout'] = true;
+                                            // use availabilityinfo as title
+                                            $requireditem['availabilityinfo'] = $coursemodule->availableinfo; 
                                         }
                                         if($this->showcolumngrades)
                                         {
@@ -473,7 +462,6 @@ class block_courses_overview extends block_base
                         }
                     }
                 }
-                
             }
         }
         
@@ -492,7 +480,7 @@ class block_courses_overview extends block_base
                 if($this->showcolumnrequirements)
                 {
                     // no grade
-                    $requireditem[] = '';
+                    $requireditem[] = '&nbsp;';
                     // requirement. TODO: use add column req function
                     $requirement = $this->block_courses_overview_add_column_requirements();
                     $requireditem[] = $requirement;
@@ -554,43 +542,36 @@ class block_courses_overview extends block_base
     private function block_courses_overview_add_html($data)
     {
         $divtable = html_writer::start_tag('div', array('class' => 'data overview table')); 
-        $divtable .= html_writer::start_tag('div', array('class' => 'colwrapper'));
         if ($this->showcolumngrades && $this->showcolumnrequirements)
         {
             //language files gebruiken?
             //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
             //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
-            $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'head col row1 col1')); 
-            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'head col row1 col2')); 
-            $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'head col row1 col3')); 
-            $divtable .= html_writer::end_tag('div');//head entirerow row1 
+            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
+            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
+            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'col col2')); 
+            $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'col col3')); 
+            $divtable .= html_writer::end_tag('div');//head row row1 
         }
         else if ($this->showcolumngrades)
         {
-            //language files gebruiken?
-            //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
-            //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
-            $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'head col row1 col1')); 
-            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'head col row1 col2')); 
-            $divtable .= html_writer::end_tag('div');//head entirerow row1 
+            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
+            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
+            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'col col2')); 
+            $divtable .= html_writer::end_tag('div');//head row row1 
         }
         else if ($this->showcolumnrequirements)
         {
-            //language files gebruiken?
-            //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
-            //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
-            $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'head col row1 col1')); 
-            $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'head col row1 col2')); 
-            $divtable .= html_writer::end_tag('div');//head entirerow row1 
+            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
+            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
+            $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'col col2')); 
+            $divtable .= html_writer::end_tag('div');//head row row1 
         }
         else
         {
-            $divtable .= html_writer::start_tag('div', array('class' => 'head entirerow row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'head col row1 col1')); 
-            $divtable .= html_writer::end_tag('div');//head entirerow row1 
+            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
+            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
+            $divtable .= html_writer::end_tag('div');//head row row1 
         }
         // first, see with which rows we are dealing
         $l = count($data);
@@ -598,19 +579,19 @@ class block_courses_overview extends block_base
         {
             // make row
             // if its the course row:
-            if(is_array($data[$i]) && isset($data[$i]['mainrow']))
+            if(is_array($data[$i]) && isset($data[$i]['courserow']))
             {
                 // if its a hidden course, for which user has teacher role
                 if(isset($data[$i]['ghost']))// && $data[$i]['ghost'] == true)
                 {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow ghost row' . ($i + 2) ));
+                    $divtable .= html_writer::start_tag('div', array('class' => 'courserow ghost row row' . ($i + 2) ));
                     unset($data[$i]['ghost']);
-                    unset($data[$i]['mainrow']);
+                    unset($data[$i]['courserow']);
                 }
                 else
                 {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow mainrow row' . ($i + 2) ));
-                    unset($data[$i]['mainrow']);
+                    $divtable .= html_writer::start_tag('div', array('class' => 'courserow row row' . ($i + 2) ));
+                    unset($data[$i]['courserow']);
                 }
             }
             // if its not a course row its a gradeable and/or required item
@@ -618,30 +599,31 @@ class block_courses_overview extends block_base
             {
                 if(is_array($data[$i]) && isset($data[$i]['greyedout']))
                 {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow greyedout row' . ($i + 2) ));
+                    $divtable .= html_writer::start_tag('div', array('class' => 'itemrow greyedout row row' . ($i + 2) ));
                     unset($data[$i]['greyedout']);
                 }
                 else
                 {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'coursedata entirerow row' . ($i + 2) ));
+                    $divtable .= html_writer::start_tag('div', array('class' => 'itemrow row row' . ($i + 2) ));
                 }
             }
             $l2 = count($data[$i]);
             // make columns, or, in other words, 
             // display extra fields with information within each row 
             // enter the rows (which are arrays themselves) that are in the data array
+            
+            // add columns
             for ($i2 = 0; $i2 < $l2; $i2++)
             {
-                $divtable .= html_writer::tag('div', $data[$i][$i2], array('class' => 'coursedata col row' . ($i + 2) . ' col' . ($i2 + 1) )); 
+                $divtable .= html_writer::tag('div', $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) )); 
             }
             // close row
-            $divtable .= html_writer::end_tag('div');//coursedata entirerow rowx
+            $divtable .= html_writer::end_tag('div');//courserow/itemrow row rowx
         }
         // this added hr element is just for layout purposes: 
         // we dont know how big the data overview table will be, so we cant simply give widths/heights
         // just floating makes for correct size, but incorrect placement
         // hr trick used to get correct size as well as placement. see also in CSS: styles.css
-        $divtable .= html_writer::end_tag('div');//colwrapper
         $divtable .= html_writer::empty_tag('hr');
         $divtable .= html_writer::end_tag('div');//data overview table
         
@@ -679,27 +661,77 @@ class block_courses_overview extends block_base
                 unset($data[$i]['fullname']);
                 // make the link the first item in the array
                 array_unshift($data[$i], $fullnamelink); // zet de link als eerste in $data - array_unshift doet een prepend ipv append
-                // add key=>value 'mainrow''true'
+                // add key=>value 'courserow''true'
                 // when we surround the data with html, we will use this to give extra class attribute to the row div tag
-                $data[$i]['mainrow'] = 'true';
+                $data[$i]['courserow'] = 'true';
             }
             
             
             // make links to gradable course items - complete gradable item is needed
             if(is_array($data[$i]) && isset($data[$i]['gradableitemmyname']))/// $$ ! empty($data[$i]['gradableitemid'])$$ ! empty($data[$i]['gradableitemmod']))
             {
-                $gradableitemlink =
-                    html_writer::link   
-                    (
-                        new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
-                        $data[$i]['gradableitemmyname'],
-                        array('title' => $data[$i]['gradableitemmyname'])
-                    );
+                // if its an activity with availabilityinfo we want this as the tooltiptext
+                // remember to strip tags because title attribute cannot deal with them
+                if( isset($data[$i]['availabilityinfo'])  )
+                {
+                    $gradableitemlink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
+                            $data[$i]['gradableitemmyname'],
+                            array('title' => strip_tags($data[$i]['availabilityinfo']))
+                        );
+                    unset($data[$i]['availabilityinfo']);
+                }
+                else
+                {
+                    $gradableitemlink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
+                            $data[$i]['gradableitemmyname'],
+                            array('title' => $data[$i]['gradableitemmyname'])
+                        );
+                }
                 unset($data[$i]['gradableitemmyname']);
                 unset($data[$i]['gradableitemid']); 
                 unset($data[$i]['gradableitemmod']); 
                 array_unshift($data[$i], $gradableitemlink);
             }
+            
+            // make links to required items that happen to be gradeable
+            if(is_array($data[$i]) && isset($data[$i]['requiredgradableitem']))/// $$ ! empty($data[$i]['gradableitemid'])$$ ! empty($data[$i]['gradableitemmod']))
+            {
+                // if its an activity with availabilityinfo we want this as the tooltiptext
+                // remember to strip tags because title attribute cannot deal with them
+                // to properly make the link in the first place, we need to strip tags as well
+                if( isset($data[$i]['availabilityinfo'])  )
+                {
+                    $requiredgradableitemlink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/mod/' . $data[$i]['requiredgradableitemmod'] . '/view.php', array('id' => $data[$i]['requiredgradableitemid'])),
+                            strip_tags($data[$i]['requiredgradableitem']),
+                            array('title' => strip_tags($data[$i]['availabilityinfo']))
+                        );
+                    unset($data[$i]['availabilityinfo']);
+                }
+                else
+                {
+                    $requiredgradableitemlink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/mod/' . $data[$i]['requiredgradableitemmod'] . '/view.php', array('id' => $data[$i]['requiredgradableitemid'])),
+                            strip_tags($data[$i]['requiredgradableitem']),
+                            array('title' => strip_tags($data[$i]['requiredgradableitem']))
+                        );
+                }
+                unset($data[$i]['requiredgradableitem']);
+                unset($data[$i]['requiredgradableitemid']); 
+                unset($data[$i]['requiredgradableitemmod']);
+                array_unshift($data[$i], $requiredgradableitemlink);
+            }
+            
         } 
         return $data;
     }
