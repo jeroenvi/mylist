@@ -28,11 +28,11 @@
 class block_my_courses extends block_base 
 {
     // data to show: 
-    private $showrowgradeableitems = false;
-    private $showrowrequireditems = false;
-    private $showcolumnrequirements = false;
-    private $showcolumngrades = false;
-    private $showcolumnprogress = false;
+    private $showrowgradeableitems = true;
+    private $showrowrequireditems = true;
+    private $showcolumnrequirements = true;
+    private $showcolumngrades = true;
+    private $showcolumnprogress = true;
     
     public function init() 
     {
@@ -52,37 +52,37 @@ class block_my_courses extends block_base
         // check custom configs, to see which data to show
         if (! empty($this->config->cfg_col_grade)) 
         {
-            if ($this->config->cfg_col_grade != 'unchecked')
+            if ($this->config->cfg_col_grade != 'checked')
             {
-                $this->showcolumngrades = true;
+                $this->showcolumngrades = false;
             }
         }
         if (! empty($this->config->cfg_row_gradeableitems)) 
         {
-            if ($this->config->cfg_row_gradeableitems != 'unchecked')
+            if ($this->config->cfg_row_gradeableitems != 'checked')
             {
-                $this->showrowgradeableitems = true;
+                $this->showrowgradeableitems = false;
             }
         }
         if (! empty($this->config->cfg_row_requireditems)) 
         {
-            if ($this->config->cfg_row_requireditems != 'unchecked')
+            if ($this->config->cfg_row_requireditems != 'checked')
             {
-                $this->showrowrequireditems = true;
+                $this->showrowrequireditems = false;
             }
         }
         if (! empty($this->config->cfg_col_requirements)) 
         {
-            if ($this->config->cfg_row_requirements != 'unchecked')
+            if ($this->config->cfg_col_requirements != 'checked')
             {
-                $this->showcolumnrequirements = true;
+                $this->showcolumnrequirements = false;
             }
         }
         if (! empty($this->config->cfg_col_progress)) 
         {
-            if ($this->config->cfg_col_progress != 'unchecked')
+            if ($this->config->cfg_col_progress != 'checked')
             {
-                $this->showcolumnprogress = true;
+                $this->showcolumnprogress = false;
             }
         }
         
