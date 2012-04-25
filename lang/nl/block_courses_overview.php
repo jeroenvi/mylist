@@ -1,9 +1,23 @@
 <?php
     $string['pluginname']               = 'Cursussen overzicht block';
     $string['coursesoverviewtitle']     = 'Mijn cursussen overzicht';
+    
+    $string['nooverview']               = 'Geen cursussen om te tonen';
+    
+    $string['chooserows']               = 'Toon/verberg <br />rijen:';
+    $string['choosecolumns']            = 'Toon/verberg <br />kolommen:';
+    
+    $string['cfg_row_gradeableitems']   = 'Becijferbare cursusonderdelen';
+    $string['cfg_row_requireditems']    = 'Vereiste onderdelen';
+    
+    $string['cfg_col_grade']            = 'Cijfer';
+    $string['cfg_col_requirements']     = 'Requirements';
+    $string['config_cfg_col_progress']  = 'Progressbar';
+    
     $string['column1']                  = 'Cursus';
     $string['column2']                  = 'Cijfer';
-    $string['cfg_col_grade']            = 'Cijfer';
-    $string['cfg_row_gradeableitems']   = 'Beoordeelde cursusonderdelen';
-    $string['choosecolumns']            = 'Toon/verberg <br />kolommen:';
-    $string['chooserows']               = 'Toon/verberg <br />rijen:';
+    $string['column3']                  = 'Vereist';
+    $string['column4']                  = 'Voortgang';
+    
+    $string['noprogress']               = 'Het bijhouden van voltooiing is voor deze cursus niet ingesteld';
+    $string['courseishidden']           = 'Deze cursus is verborgen voor sommige andere gebruikers';

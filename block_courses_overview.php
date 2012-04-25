@@ -28,11 +28,11 @@
 class block_courses_overview extends block_base 
 {
     // data to show: 
-    private $showcolumngrades = false;
     private $showrowgradeableitems = false;
     private $showrowrequireditems = false;
     private $showcolumnrequirements = false;
-    
+    private $showcolumngrades = false;
+    private $showcolumnprogress = false;
     
     public function init() 
     {
@@ -71,11 +71,18 @@ class block_courses_overview extends block_base
                 $this->showrowrequireditems = true;
             }
         }
-        if (! empty($this->config->cfg_row_requirements)) 
+        if (! empty($this->config->cfg_col_requirements)) 
         {
             if ($this->config->cfg_row_requirements != 'unchecked')
             {
                 $this->showcolumnrequirements = true;
+            }
+        }
+        if (! empty($this->config->cfg_col_progress)) 
+        {
+            if ($this->config->cfg_col_progress != 'unchecked')
+            {
+                $this->showcolumnprogress = true;
             }
         }
         
@@ -226,6 +233,87 @@ class block_courses_overview extends block_base
     
     
     
+    
+    /**
+    * Column function
+    * Function that adds progress bar to course row.
+    *
+    * @return String $progress
+    */
+    private function block_courses_overview_add_column_progress($mc, $userid)
+    {
+        $info = new completion_info($mc);
+        $completions = $info->get_completions($userid);
+        $completed = array();
+        foreach($completions as $completion)
+        {
+            $iscomplete = $completion->is_complete();
+            if($iscomplete == 1)
+            {
+                $completed[] = $iscomplete;
+            }
+        }
+        $total = count($completions);
+        
+        
+        if($total == 0)
+        {
+            $progress = html_writer::start_tag('div', array(
+                'class' => 'progressbar noprogress', 
+                'title' => get_string('noprogress', 'block_courses_overview')));
+            $progress .= html_writer::tag('div', '', array(
+                'class' => 'progress  noprogress', 
+                'style' => 'width: 100%; 
+                            height: 100%'));        
+        }
+        else
+        {
+            $numbercompleted = count($completed);
+            $percentage = 0;
+            if($numbercompleted > 0)
+            {
+                $percentage = ($numbercompleted/$total) * 100;
+            }
+            $title = 'Progress: ' . $numbercompleted . ' / ' . $total;
+            ///$percentageinverse = 100 - $percentage;
+            ///$bgcolor = 'rgb(' . round(2.55 * $percentageinverse) . ', ' . round(2.55 * $percentage) . ', 0)';
+            // add class attribute to give progress right colors with css
+            $widthprogress = '';
+            $full = '';
+            switch (true)//$percentage)
+            {
+                case ($percentage == 100):
+                    $widthprogress = 'eq100';
+                    $full = 'full';
+                    break;
+                case ($percentage < 25):
+                    $widthprogress = 'st25';
+                    break;
+                case ($percentage < 50):
+                    $widthprogress = 'st50';
+                    break;
+                case ($percentage < 75):
+                    $widthprogress = 'st75';
+                    break;
+                case ($percentage > 75):
+                    $widthprogress = 'gt75';
+                    break;
+            }
+            
+            $progress = html_writer::start_tag('div', array(
+                'class' => 'progressbar '. $full, 
+                'title' => $title));
+            $progress .= html_writer::tag('div', '', array(
+                'class' => 'progress ' . $widthprogress, 
+                'style' => 'width: ' . $percentage . '%; 
+                            height: 100%'));        
+        }
+        $progress .= html_writer::end_tag('div');//progressbar
+        return $progress;
+    }
+    
+    
+    
     /**
     * Row function
     * Function that adds gradeable items as rows
@@ -251,6 +339,7 @@ class block_courses_overview extends block_base
         if($mc->visible == 0)
         {
             $mycourseoverview['ghost'] = true;
+            $mycourseoverview['courseishidden'] = get_string('courseishidden', 'block_courses_overview');
         }
         if($this->showcolumngrades)
         {
@@ -261,6 +350,10 @@ class block_courses_overview extends block_base
         if($this->showcolumnrequirements)
         {
             $mycourseoverview[] = '&nbsp;';
+        }
+        if($this->showcolumnprogress)
+        {
+            $mycourseoverview[] = $this->block_courses_overview_add_column_progress($mc, $USER->id);
         }
         // add the global course data to the complete collection of data
         $data[] = $mycourseoverview;
@@ -481,7 +574,7 @@ class block_courses_overview extends block_base
                 {
                     // no grade
                     $requireditem[] = '&nbsp;';
-                    // requirement. TODO: use add column req function
+                    // requirement. 
                     $requirement = $this->block_courses_overview_add_column_requirements();
                     $requireditem[] = $requirement;
                 }
@@ -538,41 +631,38 @@ class block_courses_overview extends block_base
     *
     * @param Array $data
     * @return String $divtable (html divtable containing the info from $data)
+    * @retun String Nothing to display!
     */
     private function block_courses_overview_add_html($data)
     {
-        $divtable = html_writer::start_tag('div', array('class' => 'data overview table')); 
-        if ($this->showcolumngrades && $this->showcolumnrequirements)
+        if(empty($data))
         {
-            //language files gebruiken?
-            //of uit $data halen, en dan dus eerst daadwerkelijk in $data zetten?
-            //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
-            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
+            return get_string('nooverview', 'block_courses_overview');
+        }
+        
+        $divtable = html_writer::start_tag('div', array('class' => 'data overview table'));
+        
+        //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
+        // start by adding header row and first column, that contains coursenames or itemnames
+        $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
+        $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1'));        
+        // we add columns. for now, each column has own column number
+        // that means a table could consist of rows with col1 and col3
+        // if we need to name col3 col2 instead in that instance, we need to perform more checks
+        if ($this->showcolumngrades)
+        {
             $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'col col2')); 
+        }
+        if ($this->showcolumnrequirements)
+        {
             $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'col col3')); 
-            $divtable .= html_writer::end_tag('div');//head row row1 
         }
-        else if ($this->showcolumngrades)
+        if($this->showcolumnprogress)
         {
-            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
-            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'col col2')); 
-            $divtable .= html_writer::end_tag('div');//head row row1 
+            $divtable .= html_writer::tag('div', get_string('column4', 'block_courses_overview'), array('class' => 'col col4')); 
         }
-        else if ($this->showcolumnrequirements)
-        {
-            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
-            $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'col col2')); 
-            $divtable .= html_writer::end_tag('div');//head row row1 
-        }
-        else
-        {
-            $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
-            $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1')); 
-            $divtable .= html_writer::end_tag('div');//head row row1 
-        }
+        $divtable .= html_writer::end_tag('div');//head row row1
+        
         // first, see with which rows we are dealing
         $l = count($data);
         for ($i = 0; $i < $l; $i++)
@@ -649,12 +739,21 @@ class block_courses_overview extends block_base
             // make link to course - courseid and course fullname are needed
             if(is_array($data[$i]) && isset($data[$i]['id']))/// && ! empty($data[$i]['fullname']))
             {
+                if(isset($data[$i]['courseishidden']))
+                {
+                    $title = $data[$i]['courseishidden'];
+                    unset($data[$i]['courseishidden']);
+                }
+                else
+                {
+                    $title = $data[$i]['fullname'];
+                }
                 $fullnamelink =
                     html_writer::link   
                     (
                         new moodle_url('/course/view.php', array('id' => $data[$i]['id'])),
                         $data[$i]['fullname'],
-                        array('title' => $data[$i]['fullname'])
+                        array('title' => $title)
                     );
                 // remove the items in the array that we dont need anymore
                 unset($data[$i]['id']);
