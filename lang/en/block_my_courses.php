@@ -1,5 +1,5 @@
 <?php
-    $string['pluginname']               = 'Courses overview block';
+    $string['pluginname']               = 'My courses overview block';
     $string['coursesoverviewtitle']     = 'My Courses Overview';
     
     $string['nooverview']               = 'No courses to display';

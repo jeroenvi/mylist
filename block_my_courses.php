@@ -20,12 +20,12 @@
 * Available languages: English and Dutch.
 *
 * @package    block
-* @subpackage courses_overview
+* @subpackage my_courses
 * @copyright  2012 Jeroen
 * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 */
 
-class block_courses_overview extends block_base 
+class block_my_courses extends block_base 
 {
     // data to show: 
     private $showrowgradeableitems = false;
@@ -36,7 +36,7 @@ class block_courses_overview extends block_base
     
     public function init() 
     {
-        $this->title = get_string('coursesoverviewtitle', 'block_courses_overview');
+        $this->title = get_string('coursesoverviewtitle', 'block_my_courses');
     }
   
   
@@ -87,7 +87,7 @@ class block_courses_overview extends block_base
         }
         
         // make overview according to custom configs
-        $overview = $this->block_courses_overview_make_overview();
+        $overview = $this->block_my_courses_make_overview();
         
         // display content        
         $this->content          = new stdClass;
@@ -106,11 +106,11 @@ class block_courses_overview extends block_base
     *
     * @return String $overview
     */
-    private function block_courses_overview_make_overview()
+    private function block_my_courses_make_overview()
     {
-        $datanolinks = $this->block_courses_overview_make_rows(); //make_rows function will call make_column_xxx()-like functions
-        $datalinks = $this->block_courses_overview_make_links($datanolinks);
-        $overview = $this->block_courses_overview_add_html($datalinks);
+        $datanolinks = $this->block_my_courses_make_rows(); //make_rows function will call make_column_xxx()-like functions
+        $datalinks = $this->block_my_courses_make_links($datanolinks);
+        $overview = $this->block_my_courses_add_html($datalinks);
         return $overview;
     }
     
@@ -122,7 +122,7 @@ class block_courses_overview extends block_base
     *
     * @return Array $data ('raw' data: some text still needs to be transformed to hyperlinks)
     */ 
-    private function block_courses_overview_make_rows()
+    private function block_my_courses_make_rows()
     {
         global $USER, $CFG;
         require_once($CFG->dirroot.'/lib/gradelib.php');
@@ -140,20 +140,20 @@ class block_courses_overview extends block_base
         foreach($mycourses as $mc)
         {
             // ROW: course
-            $data = $this->block_courses_overview_add_row_courses($mc, $data);                     
+            $data = $this->block_my_courses_add_row_courses($mc, $data);                     
            
             
             // ROW: gradable course items
             if($this->showrowgradeableitems)
             {
-                $data = $this->block_courses_overview_add_row_gradeable_items($mc, $data);                     
+                $data = $this->block_my_courses_add_row_gradeable_items($mc, $data);                     
             } 
 
             
             // ROW: required course items
             if($this->showrowrequireditems)
             {
-                $data = $this->block_courses_overview_add_row_required_items($mc, $data);
+                $data = $this->block_my_courses_add_row_required_items($mc, $data);
             }
         } 
         return $data;
@@ -171,7 +171,7 @@ class block_courses_overview extends block_base
     * @param int $courseid
     * @return float $coursegrade or $itemgrade
     */
-    private function block_courses_overview_add_column_grades($userid = null, $courseid = null, $gradeitem = null, $course = null)
+    private function block_my_courses_add_column_grades($userid = null, $courseid = null, $gradeitem = null, $course = null)
     {
         // check for which rows we are getting grades, 
         // by checking which parameters were given when calling add_column_grades
@@ -225,7 +225,7 @@ class block_courses_overview extends block_base
     *
     * @return String $requirement
     */
-    private function block_courses_overview_add_column_requirements()
+    private function block_my_courses_add_column_requirements()
     {
         $requirement = 'v';
         return $requirement;
@@ -240,7 +240,7 @@ class block_courses_overview extends block_base
     *
     * @return String $progress
     */
-    private function block_courses_overview_add_column_progress($mc, $userid)
+    private function block_my_courses_add_column_progress($mc, $userid)
     {
         $info = new completion_info($mc);
         $completions = $info->get_completions($userid);
@@ -260,7 +260,7 @@ class block_courses_overview extends block_base
         {
             $progress = html_writer::start_tag('div', array(
                 'class' => 'progressbar noprogress', 
-                'title' => get_string('noprogress', 'block_courses_overview')));
+                'title' => get_string('noprogress', 'block_my_courses')));
             $progress .= html_writer::tag('div', '', array(
                 'class' => 'progress  noprogress', 
                 'style' => 'width: 100%; 
@@ -322,7 +322,7 @@ class block_courses_overview extends block_base
     * @param Array $data 
     * @return Array $data (with course info)
     */
-    private function block_courses_overview_add_row_courses($mc, $data)
+    private function block_my_courses_add_row_courses($mc, $data)
     {
         // row array, which will contain global course data
         global $USER;
@@ -339,13 +339,13 @@ class block_courses_overview extends block_base
         if($mc->visible == 0)
         {
             $mycourseoverview['ghost'] = true;
-            $mycourseoverview['courseishidden'] = get_string('courseishidden', 'block_courses_overview');
+            $mycourseoverview['courseishidden'] = get_string('courseishidden', 'block_my_courses');
         }
         if($this->showcolumngrades)
         {
             // get the grade i got for each course
             // add it to the global course data
-            $mycourseoverview[] = $this->block_courses_overview_add_column_grades($USER->id, $mc->id);
+            $mycourseoverview[] = $this->block_my_courses_add_column_grades($USER->id, $mc->id);
         }
         if($this->showcolumnrequirements)
         {
@@ -353,7 +353,7 @@ class block_courses_overview extends block_base
         }
         if($this->showcolumnprogress)
         {
-            $mycourseoverview[] = $this->block_courses_overview_add_column_progress($mc, $USER->id);
+            $mycourseoverview[] = $this->block_my_courses_add_column_progress($mc, $USER->id);
         }
         // add the global course data to the complete collection of data
         $data[] = $mycourseoverview;
@@ -370,7 +370,7 @@ class block_courses_overview extends block_base
     * @param Array $data 
     * @return Array $data (with gradable item info)
     */
-    private function block_courses_overview_add_row_gradeable_items($mc, $data)
+    private function block_my_courses_add_row_gradeable_items($mc, $data)
     {
         // get all gradable items (grade_item objects) for each course
         global $USER;
@@ -418,7 +418,7 @@ class block_courses_overview extends block_base
                             }
                             if($this->showcolumngrades)
                             {
-                                $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
+                                $grade = $this->block_my_courses_add_column_grades($USER->id, null, $gi);
                                 $mycourseitemoverview[] = $grade;
                             }
                             if($this->showcolumnrequirements)
@@ -435,7 +435,7 @@ class block_courses_overview extends block_base
                                     if($criteria instanceof completion_criteria_activity && $cmi->cm == $criteria->moduleinstance)
                                     {
                                         $hasrequirement = true;
-                                        $requirement = $this->block_courses_overview_add_column_requirements();
+                                        $requirement = $this->block_my_courses_add_column_requirements();
                                         $mycourseitemoverview[] = $requirement;
                                     }
                                 }
@@ -455,7 +455,7 @@ class block_courses_overview extends block_base
     
     
     
-    private function block_courses_overview_add_row_required_items($mc, $data)
+    private function block_my_courses_add_row_required_items($mc, $data)
     {
         // gradable items and required items can overlap. 
         // thats why its not just possible to add al required items
@@ -487,7 +487,7 @@ class block_courses_overview extends block_base
                         {
                             $requireditem[] = '&nbsp;';
                         }
-                        $requirement = $this->block_courses_overview_add_column_requirements();
+                        $requirement = $this->block_my_courses_add_column_requirements();
                         $requireditem[] = $requirement;
                     }
                     $data[] = $requireditem;
@@ -540,12 +540,12 @@ class block_courses_overview extends block_base
                                         }
                                         if($this->showcolumngrades)
                                         {
-                                            $grade = $this->block_courses_overview_add_column_grades($USER->id, null, $gi);
+                                            $grade = $this->block_my_courses_add_column_grades($USER->id, null, $gi);
                                             $requireditem[] = $grade;
                                         }
                                         if($this->showcolumnrequirements)
                                         {
-                                            $requirement = $this->block_courses_overview_add_column_requirements();
+                                            $requirement = $this->block_my_courses_add_column_requirements();
                                             $requireditem[] = $requirement;
                                         }
                                         $data[] = $requireditem;
@@ -575,7 +575,7 @@ class block_courses_overview extends block_base
                     // no grade
                     $requireditem[] = '&nbsp;';
                     // requirement. 
-                    $requirement = $this->block_courses_overview_add_column_requirements();
+                    $requirement = $this->block_my_courses_add_column_requirements();
                     $requireditem[] = $requirement;
                 }
                 // all gradeable items can be made into links and have an id
@@ -633,11 +633,11 @@ class block_courses_overview extends block_base
     * @return String $divtable (html divtable containing the info from $data)
     * @retun String Nothing to display!
     */
-    private function block_courses_overview_add_html($data)
+    private function block_my_courses_add_html($data)
     {
         if(empty($data))
         {
-            return get_string('nooverview', 'block_courses_overview');
+            return get_string('nooverview', 'block_my_courses');
         }
         
         $divtable = html_writer::start_tag('div', array('class' => 'data overview table'));
@@ -645,21 +645,21 @@ class block_courses_overview extends block_base
         //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
         // start by adding header row and first column, that contains coursenames or itemnames
         $divtable .= html_writer::start_tag('div', array('class' => 'head row row1'));
-        $divtable .= html_writer::tag('div', get_string('column1', 'block_courses_overview'), array('class' => 'col col1'));        
+        $divtable .= html_writer::tag('div', get_string('column1', 'block_my_courses'), array('class' => 'col col1'));        
         // we add columns. for now, each column has own column number
         // that means a table could consist of rows with col1 and col3
         // if we need to name col3 col2 instead in that instance, we need to perform more checks
         if ($this->showcolumngrades)
         {
-            $divtable .= html_writer::tag('div', get_string('column2', 'block_courses_overview'), array('class' => 'col col2')); 
+            $divtable .= html_writer::tag('div', get_string('column2', 'block_my_courses'), array('class' => 'col col2')); 
         }
         if ($this->showcolumnrequirements)
         {
-            $divtable .= html_writer::tag('div', get_string('column3', 'block_courses_overview'), array('class' => 'col col3')); 
+            $divtable .= html_writer::tag('div', get_string('column3', 'block_my_courses'), array('class' => 'col col3')); 
         }
         if($this->showcolumnprogress)
         {
-            $divtable .= html_writer::tag('div', get_string('column4', 'block_courses_overview'), array('class' => 'col col4')); 
+            $divtable .= html_writer::tag('div', get_string('column4', 'block_my_courses'), array('class' => 'col col4')); 
         }
         $divtable .= html_writer::end_tag('div');//head row row1
         
@@ -730,7 +730,7 @@ class block_courses_overview extends block_base
     * @param Array $data (with raw text)
     * @return Array $data (with links)
     */
-    private function block_courses_overview_make_links($data)
+    private function block_my_courses_make_links($data)
     {
         global $DB, $CFG, $USER, $OUTPUT;
         $l = count($data);

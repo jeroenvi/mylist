@@ -1,5 +1,5 @@
 <?php
-    $string['pluginname']               = 'Cursussen overzicht block';
+    $string['pluginname']               = 'Mijn cursussen overzicht block';
     $string['coursesoverviewtitle']     = 'Mijn cursussen overzicht';
     
     $string['nooverview']               = 'Geen cursussen om te tonen';
