@@ -12,7 +12,7 @@
     
     $string['cfg_col_grade']            = 'Grade';
     $string['cfg_col_requirements']     = 'Requirements';
-    $string['config_cfg_col_progress']  = 'Progressbar';
+    $string['cfg_col_progress']  = 'Progressbar';
     
     $string['column1']                  = 'Course';
     $string['column2']                  = 'Grade';

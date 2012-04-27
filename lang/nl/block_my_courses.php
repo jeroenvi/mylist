@@ -12,7 +12,7 @@
     
     $string['cfg_col_grade']            = 'Cijfer';
     $string['cfg_col_requirements']     = 'Requirements';
-    $string['config_cfg_col_progress']  = 'Progressbar';
+    $string['cfg_col_progress']  = 'Progressbar';
     
     $string['column1']                  = 'Cursus';
     $string['column2']                  = 'Cijfer';

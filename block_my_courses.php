@@ -30,8 +30,8 @@ class block_my_courses extends block_base
     // data to show: 
     private $showrowgradeableitems = true;
     private $showrowrequireditems = true;
-    private $showcolumnrequirements = true;
     private $showcolumngrades = true;
+    private $showcolumnrequirements = true;
     private $showcolumnprogress = true;
     
     public function init() 
@@ -46,45 +46,31 @@ class block_my_courses extends block_base
         // get_content() is called multiple times, so only continue to build the content if it hasnt been done already
         if ($this->content !== null) 
         {
-          return $this->content;
+            return $this->content;
         }
                 
         // check custom configs, to see which data to show
-        if (! empty($this->config->cfg_col_grade)) 
+        if ($this->config->cfg_row_gradeableitems != 1)//'checked')
         {
-            if ($this->config->cfg_col_grade != 'checked')
-            {
-                $this->showcolumngrades = false;
-            }
+            $this->showrowgradeableitems = false;
         }
-        if (! empty($this->config->cfg_row_gradeableitems)) 
+        if ($this->config->cfg_row_requireditems != 1)
         {
-            if ($this->config->cfg_row_gradeableitems != 'checked')
-            {
-                $this->showrowgradeableitems = false;
-            }
+            $this->showrowrequireditems = false;
         }
-        if (! empty($this->config->cfg_row_requireditems)) 
+        if ($this->config->cfg_col_grade != 1)//'checked')
         {
-            if ($this->config->cfg_row_requireditems != 'checked')
-            {
-                $this->showrowrequireditems = false;
-            }
+            $this->showcolumngrades = false;
         }
-        if (! empty($this->config->cfg_col_requirements)) 
+        if ($this->config->cfg_col_requirements != 1)
         {
-            if ($this->config->cfg_col_requirements != 'checked')
-            {
-                $this->showcolumnrequirements = false;
-            }
+            $this->showcolumnrequirements = false;
         }
-        if (! empty($this->config->cfg_col_progress)) 
+        if ($this->config->cfg_col_progress != 1)
         {
-            if ($this->config->cfg_col_progress != 'checked')
-            {
-                $this->showcolumnprogress = false;
-            }
+            $this->showcolumnprogress = false;
         }
+        
         
         // make overview according to custom configs
         $overview = $this->block_my_courses_make_overview();
