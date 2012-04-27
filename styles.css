@@ -12,12 +12,15 @@
 {
     margin: 0px;
 }
-.courserow 
+.courserow .col1, .courserow .col2 
 {
     font-weight: bold;
     font-size: 120%; /* larger; */
-    border-top: 1px solid black;
     padding-bottom: 5px;
+}
+.courserow
+{
+    border-top: 1px solid black;
 }
 .data.overview.table
 {
@@ -38,12 +41,12 @@ hr
 .col1
 {
     padding-left: 0%;
-    width: 37%;
+    width: 35%;
 }
 .itemrow .col1
 {
     padding-left: 2%;
-    width: 35%;
+    width: 33%;
 }
 .col2, .col3, .col4
 {
@@ -65,7 +68,7 @@ hr
     border: 1px solid #999;
     border-radius: 2px;
     margin-left: auto;
-    margin-right: auto;
+    margin-right: auto; 
 }
 .noprogress
 {
@@ -99,4 +102,16 @@ hr
 {
     background-color: #0e0;
 }
-
+.check
+{
+    display: inline;
+}
+.achieved.yes
+{
+    color: green;
+    font-weight: bold;
+}
+.achieved.no
+{
+    color: red;
+}

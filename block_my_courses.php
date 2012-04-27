@@ -211,9 +211,20 @@ class block_my_courses extends block_base
     *
     * @return String $requirement
     */
-    private function block_my_courses_add_column_requirements()
+    private function block_my_courses_add_column_requirements($requirement, $completion)
     {
-        $requirement = 'v';
+        if($completion->is_complete() == 1)
+        {
+            $requirement = html_writer::tag('div', 'V', array(
+                'class' => 'requirement requireditem achieved yes', 
+                'title' => $requirement));
+        }
+        else
+        {
+            $requirement = html_writer::tag('div', 'x', array(
+                    'class' => 'requirement requireditem achieved no', 
+                    'title' => $requirement));
+        }
         return $requirement;
     }
     
@@ -241,7 +252,6 @@ class block_my_courses extends block_base
         }
         $total = count($completions);
         
-        
         if($total == 0)
         {
             $progress = html_writer::start_tag('div', array(
@@ -260,7 +270,7 @@ class block_my_courses extends block_base
             {
                 $percentage = ($numbercompleted/$total) * 100;
             }
-            $title = 'Progress: ' . $numbercompleted . ' / ' . $total;
+            $title = get_string('progress', 'block_my_courses') . $numbercompleted . ' / ' . $total;
             ///$percentageinverse = 100 - $percentage;
             ///$bgcolor = 'rgb(' . round(2.55 * $percentageinverse) . ', ' . round(2.55 * $percentage) . ', 0)';
             // add class attribute to give progress right colors with css
@@ -335,7 +345,24 @@ class block_my_courses extends block_base
         }
         if($this->showcolumnrequirements)
         {
-            $mycourseoverview[] = '&nbsp;';
+            $notrequired = true;
+            $info = new completion_info($mc);
+            $completions = $info->get_completions($USER->id);
+            foreach($completions as $completion)
+            {
+                $criteria = $completion->get_criteria();
+                if($criteria->criteriatype == 6)
+                {
+                    $details = $criteria->get_details($completion);
+                    $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                    $mycourseoverview[] = $requirement;
+                    $notrequired = false;
+                }
+            }
+            if($notrequired)
+            {
+                $mycourseoverview[] = '&nbsp;';
+            }
         }
         if($this->showcolumnprogress)
         {
@@ -421,7 +448,7 @@ class block_my_courses extends block_base
                                     if($criteria instanceof completion_criteria_activity && $cmi->cm == $criteria->moduleinstance)
                                     {
                                         $hasrequirement = true;
-                                        $requirement = $this->block_my_courses_add_column_requirements();
+                                        $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
                                         $mycourseitemoverview[] = $requirement;
                                     }
                                 }
@@ -429,6 +456,10 @@ class block_my_courses extends block_base
                                 {
                                     $mycourseitemoverview[] = '&nbsp;';// or min-width
                                 }
+                            }
+                            if($this->showcolumnprogress)
+                            {
+                                $mycourseitemoverview[] = '&nbsp;';
                             }
                             $data[] = $mycourseitemoverview;
                         }
@@ -455,29 +486,14 @@ class block_my_courses extends block_base
         {
             $info = new completion_info($mc);
             $completions = $info->get_completions($USER->id);
+            // make 2 arrays to help change the order of occurence of required items in predata
+            $requiredandgradeables = array();
+            $requireds = array();
             foreach($completions as $completion)
             {
                 $criteria = $completion->get_criteria();
                 $details = $criteria->get_details($completion);
-                
-                // for the moment, add all required items except for the ones that are also gradeable 
-                if(! $criteria instanceof completion_criteria_activity)// completion_criteria_activity Object
-                {
-                    // put item in array before we add it to $data 
-                    // to prevent string offset problems with older versions of php when doing checks later
-                    $requireditem = array();
-                    $requireditem[] = $details['criteria'];
-                    if($this->showcolumnrequirements)
-                    {
-                        if($this->showcolumngrades)
-                        {
-                            $requireditem[] = '&nbsp;';
-                        }
-                        $requirement = $this->block_my_courses_add_column_requirements();
-                        $requireditem[] = $requirement;
-                    }
-                    $data[] = $requireditem;
-                }                            
+                                            
                 // we want to add grades for items that are required (and gradeable)
                 
                 // we have required items by their id, through $criteria->moduleinstance
@@ -531,17 +547,55 @@ class block_my_courses extends block_base
                                         }
                                         if($this->showcolumnrequirements)
                                         {
-                                            $requirement = $this->block_my_courses_add_column_requirements();
+                                            $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
                                             $requireditem[] = $requirement;
                                         }
-                                        $data[] = $requireditem;
+                                        if($this->showcolumnprogress)
+                                        {
+                                            $requireditem[] = '&nbsp;';
+                                        }
+                                        $requiredandgradeables[] = $requireditem;
                                     }
                                 } 
                             }
                         }
                     }
                 }
+                // add the rest of the required items (the ones that arent also gradeable)
+                // except passing grade (which has id nr 6)
+                if(! $criteria instanceof completion_criteria_activity && $criteria->criteriatype != 6)// completion_criteria_activity Object
+                {
+                    // put item in array before we add it to $data 
+                    // to prevent string offset problems with older versions of php when doing checks later
+                    $requireditem = array();
+                    if($criteria->criteriatype == 1)
+                    {
+                        $requireditem['markyourselfcomplete'] = $details['criteria'];
+                        $requireditem['courseid'] = $mc->id;
+                    }
+                    else
+                    {
+                        $requireditem[] = $details['criteria'];
+                    }
+                    
+                    if($this->showcolumngrades)
+                    {
+                        $requireditem[] = '&nbsp;';
+                    }
+                    if($this->showcolumnrequirements)
+                    {
+                        $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                        $requireditem[] = $requirement;
+                    }
+                    if($this->showcolumnprogress)
+                    {
+                        $requireditem[] = '&nbsp;';
+                    }
+                    $requireds[] = $requireditem;
+                }
             }
+            $data = array_merge($data, $requiredandgradeables);
+            $data = array_merge($data, $requireds);
         }
         
         
@@ -555,15 +609,7 @@ class block_my_courses extends block_base
                 $criteria = $completion->get_criteria();
                 $details = $criteria->get_details($completion);
                 $requireditem = array();
-                $requireditem[] = $details['criteria'];
-                if($this->showcolumnrequirements)
-                {
-                    // no grade
-                    $requireditem[] = '&nbsp;';
-                    // requirement. 
-                    $requirement = $this->block_my_courses_add_column_requirements();
-                    $requireditem[] = $requirement;
-                }
+                
                 // all gradeable items can be made into links and have an id
                 // so if there is an id for the required item,
                 // first check if we do not have it already
@@ -595,8 +641,33 @@ class block_my_courses extends block_base
                         }
                     }
                 }
-                if(! $alreadycontains)
+                if(! $alreadycontains && $criteria->criteriatype != 6)
                 {
+                    if($criteria->criteriatype == 1)
+                    {
+                        $requireditem['markyourselfcomplete'] = $details['criteria'];
+                        $requireditem['courseid'] = $mc->id; 
+                    }
+                    else
+                    {
+                        $requireditem[] = $details['criteria'];
+                    }
+                    if($this->showcolumngrades)
+                    {
+                        // no grade
+                        $requireditem[] = '&nbsp;';
+                    }
+                    if($this->showcolumnrequirements)
+                    {
+                        // requirement. 
+                        $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                        $requireditem[] = $requirement;
+                    }
+                    if($this->showcolumnprogress)
+                    {
+                        $requireditem[] = '&nbsp;';
+                    }
+                    
                     $data[] = $requireditem;
                 }
                 // completion criteria:
@@ -817,7 +888,23 @@ class block_my_courses extends block_base
                 array_unshift($data[$i], $requiredgradableitemlink);
             }
             
-        } 
+            // make link to the required item where one marks him-/herself complete in the course
+            // itll link to the course, which is where the mark yourself complete block is
+            if(is_array($data[$i]) && isset($data[$i]['markyourselfcomplete']) && isset($data[$i]['courseid']))
+            {
+                $markyourselfcompletelink =
+                        html_writer::link   
+                        (
+                            new moodle_url('/course/view.php', array('id' => $data[$i]['courseid'])  ),
+                            $data[$i]['markyourselfcomplete'],
+                            array('title' => get_string('markyourselfcomplete', 'block_my_courses'))
+                        );
+                
+                unset($data[$i]['markyourselfcomplete']);
+                unset($data[$i]['courseid']);
+                array_unshift($data[$i], $markyourselfcompletelink);
+            }
+        }
         return $data;
-    }
+    } 
 } 

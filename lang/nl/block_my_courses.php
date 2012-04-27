@@ -21,3 +21,5 @@
     
     $string['noprogress']               = 'Het bijhouden van voltooiing is voor deze cursus niet ingesteld';
     $string['courseishidden']           = 'Deze cursus is verborgen voor sommige andere gebruikers';
+    $string['progress']                 = 'Voortgang: ';
+    $string['markyourselfcomplete']     = 'Ga de cursus binnen en markeer daar dat je klaar bent met de cursus';

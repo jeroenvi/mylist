@@ -21,4 +21,6 @@
     
     $string['noprogress']               = 'Tracking of course-completion is not set for this course';
     $string['courseishidden']           = 'This course is hidden for some of the other users';
+    $string['progress']                 = 'Progress: ';
+    $string['markyourselfcomplete']     = 'Enter the course and mark yourself complete there';
     
