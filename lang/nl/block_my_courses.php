@@ -23,3 +23,4 @@
     $string['courseishidden']           = 'Deze cursus is verborgen voor sommige andere gebruikers';
     $string['progress']                 = 'Voortgang: ';
     $string['markyourselfcomplete']     = 'Ga de cursus binnen en markeer daar dat je klaar bent met de cursus';
+    $string['coursegrade']              = 'Haal een (gemiddeld) cijfer voor deze cursus. Deze is tenminste ';

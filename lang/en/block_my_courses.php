@@ -23,4 +23,5 @@
     $string['courseishidden']           = 'This course is hidden for some of the other users';
     $string['progress']                 = 'Progress: ';
     $string['markyourselfcomplete']     = 'Enter the course and mark yourself complete there';
+    $string['coursegrade']              = 'You have to have an (average) grade for this course. It has to be at least ';
     

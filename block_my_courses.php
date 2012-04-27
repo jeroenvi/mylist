@@ -211,11 +211,15 @@ class block_my_courses extends block_base
     *
     * @return String $requirement
     */
-    private function block_my_courses_add_column_requirements($requirement, $completion)
+    private function block_my_courses_add_column_requirements($requirement, $completion, $coursegrade = false)
     {
+        if($coursegrade)
+        {
+            $requirement = get_string('coursegrade', 'block_my_courses') . $requirement;
+        }
         if($completion->is_complete() == 1)
         {
-            $requirement = html_writer::tag('div', 'V', array(
+            $requirement = html_writer::tag('div', 'v', array(
                 'class' => 'requirement requireditem achieved yes', 
                 'title' => $requirement));
         }
@@ -351,10 +355,11 @@ class block_my_courses extends block_base
             foreach($completions as $completion)
             {
                 $criteria = $completion->get_criteria();
+                // check to see if a minimum course grade is required (id = 6)
                 if($criteria->criteriatype == 6)
                 {
                     $details = $criteria->get_details($completion);
-                    $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                    $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion, true);
                     $mycourseoverview[] = $requirement;
                     $notrequired = false;
                 }
