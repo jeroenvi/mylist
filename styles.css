@@ -3,28 +3,69 @@
     margin: 0px;
     clear: both;
 }
-.row.head
+#region-main-wrap .row.head
 {
     font-weight: bold;
     font-size: 140%; /* larger; */
 }
+#region-post .row.head, #region-pre .row.head
+{
+    visibility: hidden;
+    display: none;
+}
+
 .block .content .entirerow.head, .block .content .col.head
 {
     margin: 0px;
 }
-.courserow .col1, .courserow .col2 
+#region-main-wrap .courserow .col1, #region-main-wrap .courserow .col2 
 {
     font-weight: bold;
     font-size: 120%; /* larger; */
     padding-bottom: 5px;
 }
-.courserow
+.courserow .col1 
+{
+    font-weight: bold;
+    font-size: 120%; /* larger; */
+    padding-bottom: 5px;
+}
+.courserow .col2 
+{
+    font-weight: bold;
+    font-size: 120%; 
+}
+
+#region-main-wrap .courserow
 {
     border-top: 1px solid black;
+    /* margin-top: 10px; */
+}
+#region-post .courserow, #region-pre .courserow
+{
+    border-top: 2px solid black;
+    /* border-left: 2px solid black;
+    border-right: 2px solid black; */
+    padding-bottom: 3px;
+    /* padding-top: 1px; */
+    margin-top: 10px;
+    border-bottom: 1px dotted lightGray;
+}
+
+#region-post .itemrow, #region-pre .itemrow
+{
+    /* border-top: 1px dotted gray; */
+    /* border-left: 2px solid black;
+    border-right: 2px solid black; */
+}
+#region-main-wrap .data.overview.table
+{
+    padding: 5px;
+    margin: 0px;
 }
 .data.overview.table
 {
-    padding: 5px;
+    padding: 0px;
     margin: 0px;
 }
 hr
@@ -33,25 +74,38 @@ hr
     display:block;
     visibility:hidden;
 } 
-.col
+#region-main-wrap .col
 {
     float: left;
     padding: 2px;
 }
-.col1
+#region-main-wrap .col1
 {
     padding-left: 0%;
     width: 35%;
 }
-.itemrow .col1
+#region-main-wrap .itemrow .col1
 {
     padding-left: 2%;
     width: 33%;
 }
-.col2, .col3, .col4
+.itemrow .col1
+{
+    padding-left: 5px;
+}
+
+#region-main-wrap .col2, #region-main-wrap .col3, #region-main-wrap .col4
 {
     width: 20%;
     text-align: center;
+}
+.col2, .col3, .col4
+{
+    text-align: center;
+}
+#region-main-wrap .col3
+{
+    padding-top: 3px;
 }
 .ghost, .greyedout
 {

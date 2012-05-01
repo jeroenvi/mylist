@@ -489,7 +489,7 @@ class block_my_courses extends block_base
                             }
                             if($this->showcolumnprogress)
                             {
-                                $mycourseitemoverview[] = '&nbsp;';
+                                $mycourseitemoverview[] = '';//'&nbsp;';
                             }
                             $data[] = $mycourseitemoverview;
                         }
@@ -619,7 +619,7 @@ class block_my_courses extends block_base
                     }
                     if($this->showcolumnprogress)
                     {
-                        $requireditem[] = '&nbsp;';
+                        $requireditem[] = '';//'&nbsp;';
                     }
                     $requireds[] = $requireditem;
                 }
@@ -695,7 +695,7 @@ class block_my_courses extends block_base
                     }
                     if($this->showcolumnprogress)
                     {
-                        $requireditem[] = '&nbsp;';
+                        $requireditem[] = '';//'&nbsp;';
                     }
                     
                     $data[] = $requireditem;
