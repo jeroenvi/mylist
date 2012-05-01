@@ -118,8 +118,8 @@ class block_my_courses extends block_base
         
         // get my courses -> also includes modinfo, but not the modname and grade. 
         // modinfo has to be unserialized, this will make the string into a usable array
-        $mycourses = array();// QUERY
-        $mycourses = enrol_get_my_courses('modinfo');// eventueel summary, enablecompletion missch completionstartonenrol velden van course ook nog ophalen
+        $mycourses = array();
+        $mycourses = enrol_get_my_courses('modinfo');
                 
         // start the array which will hold all overview data
         $data = array();
@@ -190,7 +190,7 @@ class block_my_courses extends block_base
             $longgrade = $gradeditem->finalgrade;
             if(! empty($longgrade))
             {
-                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) // QUERY?
+                // make the grade into 2 decimals (or not 2, if configured otherwise elsewhere) 
                 $itemgrade = grade_format_gradevalue($longgrade, $gradeitem, true);
             }
             else
@@ -219,15 +219,38 @@ class block_my_courses extends block_base
         }
         if($completion->is_complete() == 1)
         {
-            $requirement = html_writer::tag('div', 'v', array(
+            // the only times we add javascript
+            $requirement = /* html_writer::tag('div', 'v', array(
                 'class' => 'requirement requireditem achieved yes', 
-                'title' => $requirement));
+                'title' => $requirement)); */
+                html_writer::checkbox   (
+                                            'requirement requireditem achieved yes',
+                                            1,
+                                            true,
+                                            '',
+                                            array   (
+                                                        'class' => 'requirement requireditem achieved yes',
+                                                        'onclick' => 'return false;', 
+                                                        'title' => $requirement
+                                                    )
+                                        );
         }
         else
         {
-            $requirement = html_writer::tag('div', 'x', array(
+            $requirement = /* html_writer::tag('div', 'x', array(
                     'class' => 'requirement requireditem achieved no', 
-                    'title' => $requirement));
+                    'title' => $requirement)); */
+                html_writer::checkbox   (
+                                            'requirement requireditem achieved no',
+                                            0,
+                                            false,
+                                            '',
+                                            array   (
+                                                        'class' => 'requirement requireditem achieved no',
+                                                        'onclick' => 'return false;', 
+                                                        'title' => $requirement
+                                                    )
+                                        );
         }
         return $requirement;
     }
@@ -258,13 +281,15 @@ class block_my_courses extends block_base
         
         if($total == 0)
         {
-            $progress = html_writer::start_tag('div', array(
+            $progress = html_writer::tag('span', get_string('noprogressset', 'block_my_courses'), array('class' => 'noinfo', 'title' => get_string('noprogress', 'block_my_courses')));
+            /* $progress = html_writer::start_tag('div', array(
                 'class' => 'progressbar noprogress', 
                 'title' => get_string('noprogress', 'block_my_courses')));
             $progress .= html_writer::tag('div', '', array(
                 'class' => 'progress  noprogress', 
                 'style' => 'width: 100%; 
-                            height: 100%'));        
+                            height: 100%'));  
+            //$progress .= html_writer::end_tag('div');//progressbar */
         }
         else
         {
@@ -306,9 +331,9 @@ class block_my_courses extends block_base
             $progress .= html_writer::tag('div', '', array(
                 'class' => 'progress ' . $widthprogress, 
                 'style' => 'width: ' . $percentage . '%; 
-                            height: 100%'));        
+                            height: 100%'));   
+            $progress .= html_writer::end_tag('div');//progressbar                            
         }
-        $progress .= html_writer::end_tag('div');//progressbar
         return $progress;
     }
     
@@ -326,7 +351,7 @@ class block_my_courses extends block_base
     {
         // row array, which will contain global course data
         global $USER;
-        $mycourseoverview = array();// later wil ik array_unshift gebruiken dus liever een array dan een object, dus geen: $mycourseoverview = new stdClass;
+        $mycourseoverview = array();
         // get my courses' fullname and id
         // id and fullname values are given a key when added to the array
         // array items with keys contain values needed to make links
@@ -366,7 +391,7 @@ class block_my_courses extends block_base
             }
             if($notrequired)
             {
-                $mycourseoverview[] = '&nbsp;';
+                $mycourseoverview[] = html_writer::tag('span', get_string('notrequired', 'block_my_courses'), array('class' => 'noinfo'));//'&nbsp;';
             }
         }
         if($this->showcolumnprogress)
@@ -392,7 +417,7 @@ class block_my_courses extends block_base
     {
         // get all gradable items (grade_item objects) for each course
         global $USER;
-        $gradeitems = array();// QUERY
+        $gradeitems = array();
         $gradeitems = grade_item::fetch_all(array('courseid'=>$mc->id));
         // some hassle to get the coursemoduleid and mod's name
         // we need this later to know which coursemodule id matches which grade
@@ -401,7 +426,7 @@ class block_my_courses extends block_base
         {
             if($gi->itemtype != 'course')
             {
-                // some hassle to get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
+                // get the coursemoduleid and mod. modinfo has it, but it needs to be connected to the right grade_item
                 foreach($coursemodinfoarray as $cmi)
                 {
                     // todo: check if these checks are ALWAYS enough and correct
@@ -459,7 +484,7 @@ class block_my_courses extends block_base
                                 }
                                 if(! $hasrequirement)
                                 {
-                                    $mycourseitemoverview[] = '&nbsp;';// or min-width
+                                    $mycourseitemoverview[] = html_writer::tag('span', get_string('notrequired', 'block_my_courses'), array('class' => 'noinfo'));//'&nbsp;';// or min-width
                                 }
                             }
                             if($this->showcolumnprogress)
@@ -527,7 +552,7 @@ class block_my_courses extends block_base
                                     $coursemodule = $fastmodinfo->get_cm($cmi->cm);
                                     
                                     // dont display hidden items
-                                    // normaal: uservisible == 1
+                                    // normal: uservisible == 1
                                     // greyed out: showavailability == 1 && uservisible != 1 (give them availability info)
                                     // hidden: the rest (showavailability == 0 && uservisible != 1)
                         
@@ -557,7 +582,7 @@ class block_my_courses extends block_base
                                         }
                                         if($this->showcolumnprogress)
                                         {
-                                            $requireditem[] = '&nbsp;';
+                                            $requireditem[] = html_writer::tag('span', get_string('notrequired', 'block_my_courses'), array('class' => 'noinfo'));//'&nbsp;';
                                         }
                                         $requiredandgradeables[] = $requireditem;
                                     }
@@ -585,7 +610,7 @@ class block_my_courses extends block_base
                     
                     if($this->showcolumngrades)
                     {
-                        $requireditem[] = '&nbsp;';
+                        $requireditem[] = html_writer::tag('span', get_string('notgradeable', 'block_my_courses'), array('class' => 'noinfo'));//'&nbsp;';
                     }
                     if($this->showcolumnrequirements)
                     {
@@ -660,7 +685,7 @@ class block_my_courses extends block_base
                     if($this->showcolumngrades)
                     {
                         // no grade
-                        $requireditem[] = '&nbsp;';
+                        $requireditem[] = html_writer::tag('span', get_string('notgradeable', 'block_my_courses'), array('class' => 'noinfo'));//'&nbsp;';
                     }
                     if($this->showcolumnrequirements)
                     {
@@ -808,7 +833,7 @@ class block_my_courses extends block_base
                 }
                 else
                 {
-                    $title = $data[$i]['fullname'];
+                    $title = get_string('goto', 'block_my_courses') . $data[$i]['fullname'];
                 }
                 $fullnamelink =
                     html_writer::link   
@@ -821,7 +846,7 @@ class block_my_courses extends block_base
                 unset($data[$i]['id']);
                 unset($data[$i]['fullname']);
                 // make the link the first item in the array
-                array_unshift($data[$i], $fullnamelink); // zet de link als eerste in $data - array_unshift doet een prepend ipv append
+                array_unshift($data[$i], $fullnamelink); // array_unshift does a prepend instead of append
                 // add key=>value 'courserow''true'
                 // when we surround the data with html, we will use this to give extra class attribute to the row div tag
                 $data[$i]['courserow'] = 'true';
@@ -851,7 +876,7 @@ class block_my_courses extends block_base
                         (
                             new moodle_url('/mod/' . $data[$i]['gradableitemmod'] . '/view.php', array('id' => $data[$i]['gradableitemid'])),
                             $data[$i]['gradableitemmyname'],
-                            array('title' => $data[$i]['gradableitemmyname'])
+                            array('title' => get_string('goto', 'block_my_courses') . $data[$i]['gradableitemmyname'])
                         );
                 }
                 unset($data[$i]['gradableitemmyname']);
@@ -884,7 +909,7 @@ class block_my_courses extends block_base
                         (
                             new moodle_url('/mod/' . $data[$i]['requiredgradableitemmod'] . '/view.php', array('id' => $data[$i]['requiredgradableitemid'])),
                             strip_tags($data[$i]['requiredgradableitem']),
-                            array('title' => strip_tags($data[$i]['requiredgradableitem']))
+                            array('title' => get_string('goto', 'block_my_courses') . strip_tags($data[$i]['requiredgradableitem']))
                         );
                 }
                 unset($data[$i]['requiredgradableitem']);

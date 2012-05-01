@@ -106,7 +106,7 @@ hr
 {
     display: inline;
 }
-.achieved.yes
+/* .achieved.yes
 {
     color: green;
     font-weight: bold;
@@ -114,4 +114,9 @@ hr
 .achieved.no
 {
     color: red;
+} */
+.noinfo
+{
+    font-style: italic;
+    font-size: 70%;/*smaller*/
 }

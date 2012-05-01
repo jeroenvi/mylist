@@ -18,12 +18,14 @@ class block_my_courses_edit_form extends block_edit_form
         $mform->setDefault('config_cfg_row_gradeableitems', 1);
         //$mform->disabledIf('config_cfg_row_gradeableitems', 'config_cfg_col_grade', 'eq', 0);//eq = equals, 0 = arraykey = not checked, or in this case 'unchecked'
         $mform->setType('config_cfg_row_gradeableitems', PARAM_MULTILANG);
+        ///$mform->addHelpButton(get_string('helpbuttongradeableitem', 'block_my_courses'), get_string('helptextgradeableitem', 'block_my_courses'));
+        $mform->addHelpButton('config_cfg_row_gradeableitems', 'cfg_row_gradeableitems', 'block_my_courses');
       
         // checkbox for row requireditems
         $mform->addElement('advcheckbox', 'config_cfg_row_requireditems', get_string('cfg_row_requireditems', 'block_my_courses'));
         $mform->setDefault('config_cfg_row_requireditems', 1);
         $mform->setType('config_cfg_row_requireditems', PARAM_MULTILANG); 
-        
+        $mform->addHelpButton('config_cfg_row_requireditems', 'cfg_row_requireditems', 'block_my_courses');
         
        
         // Label show/hide COLUMNS
@@ -43,5 +45,7 @@ class block_my_courses_edit_form extends block_edit_form
         $mform->addElement('advcheckbox', 'config_cfg_col_progress', get_string('cfg_col_progress', 'block_my_courses'));
         $mform->setDefault('config_cfg_col_progress', 1);
         $mform->setType('config_cfg_col_progress', PARAM_MULTILANG);
+        $mform->addHelpButton('config_cfg_col_progress', 'cfg_col_progress', 'block_my_courses');
+        
     }
 }
