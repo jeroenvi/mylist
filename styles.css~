@@ -136,10 +136,6 @@ hr
 {
     border: 2px solid #0a0;
 }
-.progress
-{
-	float: left;
-}
 .st25
 {
     background-color: red;
