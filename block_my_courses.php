@@ -825,7 +825,7 @@ class block_my_courses extends block_base
                                         }
                                     
                                     "
-                                    style="width: 11px; height: 11px"
+                                    style="width: 11px; height: 11px; padding-right: 2px;"
                                 ></div>';
                     $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));
                 }
