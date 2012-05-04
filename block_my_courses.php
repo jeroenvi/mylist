@@ -727,7 +727,8 @@ class block_my_courses extends block_base
         {
             return get_string('nooverview', 'block_my_courses');
         }
-        
+        // find out in which column this block is placed
+        $region = $this->instance->region;
         $divtable = html_writer::start_tag('div', array('class' => 'data overview table'));
         
         //bij rows en columns class attributes first/last toevoegen aan firsts en lasts?
@@ -767,8 +768,14 @@ class block_my_courses extends block_base
                     $divtable .= html_writer::end_tag('div');//course rows //end wrap entire course and all its items
                 }
                 // wrap entire course and all its items
-                $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse expanded')   );
-                
+                if($region == content)
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse expanded')   );
+                }
+                else
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse collapsed')   );
+                }
                 $endcoursewrap = true;
                 // if its a hidden course, for which user has teacher role
                 if(isset($data[$i]['ghost']))// && $data[$i]['ghost'] == true)
@@ -808,26 +815,52 @@ class block_my_courses extends block_base
                 // add collapse/expand ability. JAVASCRIPT!
                 if($i2 == 0 && $iscourserow)
                 {
-                    $expander = '<div 
-                                    class="expanderexpanded" 
-                                    onclick="
-                                    
-                                        if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
-                                        {
-                                            parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
-                                            this.innerHTML=\'\';
-                                            this.className = \'expanderexpanded\';
-                                        }
-                                        else 
-                                        {
-                                            parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
-                                            this.className = \'expandercollapsed\';
-                                        }
-                                    
-                                    "
-                                    style="width: 11px; height: 11px; padding-right: 2px;"
-                                ></div>';
-                    $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));
+                    if($region == 'content')
+                    {
+                        $expander = '<div 
+                                        class="expanderexpanded" 
+                                        onclick="
+                                        
+                                            if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
+                                                this.innerHTML=\'\';
+                                                this.className = \'expanderexpanded\';
+                                            }
+                                            else 
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
+                                                this.className = \'expandercollapsed\';
+                                            }
+                                        
+                                        "
+                                        style="width: 11px; height: 11px; padding-right: 2px;"
+                                    ></div>';
+                        $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));
+                    }
+                    else
+                    {
+                        $expander = '<div 
+                                        class="expandercollapsed" 
+                                        onclick="
+                                        
+                                            if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
+                                                this.innerHTML=\'\';
+                                                this.className = \'expanderexpanded\';
+                                            }
+                                            else 
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
+                                                this.className = \'expandercollapsed\';
+                                            }
+                                        
+                                        "
+                                        style="width: 11px; height: 11px; padding-right: 2px;"
+                                    ></div>';
+                        $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));
+                    }
                 }
                 else
                 {

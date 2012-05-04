@@ -199,6 +199,11 @@ hr
     visibility: hidden;
     display: none;
 }
+#region-post .collapsed .col3, #region-pre .collapsed .col3
+{
+    visibility: hidden;
+    display: none;
+}
 .noinfo[title]:hover, .requirement[title]:hover, .itemrow.greyedout a[title]:hover, .coursenamerow.ghost a[title]:hover
 {
     cursor: help;
