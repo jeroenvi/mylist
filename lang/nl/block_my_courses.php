@@ -11,12 +11,13 @@
     $string['cfg_row_requireditems']    = 'Vereiste cursusonderdelen';
     
     $string['cfg_row_gradeableitems_help']   = 'Becijferbare cursusonderdelen, zijn onderdelen in een cursus waar je een cijfer voor kunt halen.<br /><br />
-                                                Sommige becijferbare onderdelen, zijn ook vereist.<br /><br /><br />
-                                                Note: Als je besluit deze rijen te verbergen, maar wel de vereiste cursusonderdelen toont, 
-                                                zullen die onderdelen die zowel becijferbaar als vereist zijn, in het overzicht blijven staan.';
-    $string['cfg_row_requireditems_help']   = 'Vereiste cursusonderdelen zijn de onderdelen die nodig zijn om de cursus te voltooien.<br /><br /><br />
-                                                Note: Als je besluit deze rijen te verbergen, maar wel de becijferbare cursusonderdelen toont,
-                                                zullen die onderdelen die zowel vereist als becijferbaar zijn, in het overzicht blijven staan.';
+                                                Sommige cursusonderdelen, zijn zowel becijferbaar als vereist.<br /><br /><br />
+                                                Note: Als je besluit deze rijen te verbergen, kan het zijn dat sommigen ervan toch in het overzicht blijven staan. 
+                                                Die rijen zijn dan ook nog vereist';
+    $string['cfg_row_requireditems_help']   = 'Vereiste cursusonderdelen zijn de onderdelen die nodig zijn om de cursus te voltooien.<br /><br />
+                                                Sommige cursusonderdelen, zijn zowel vereist als becijferbaar.<br /><br /><br />
+                                                Note: Als je besluit deze rijen te verbergen, kan het zijn dat sommigen ervan toch in het overzicht blijven staan. 
+                                                Die rijen zijn dan ook nog becijferbaar.';
     
     $string['cfg_col_grade']            = 'Cijfer';
     $string['cfg_col_requirements']     = 'Vereist';
@@ -34,7 +35,7 @@
     $string['courseishidden']           = 'Deze cursus is verborgen voor sommige andere gebruikers';
     $string['progress']                 = 'Voortgang: ';
     $string['markyourselfcomplete']     = 'Ga de cursus binnen en markeer daar dat je klaar bent met de cursus';
-    $string['coursegrade']              = 'Haal een (gemiddeld) cijfer voor deze cursus. Deze is tenminste ';
+    $string['coursegrade']              = 'Een gemiddeld cijfer is nodig voor deze cursus. Van tenminste ';
     $string['notrequired']              = 'Geen vereiste';
     $string['notgradeable']             = 'Niet becijferbaar';
     $string['noprogressset']            = 'Cursus bevat geen vereisten';

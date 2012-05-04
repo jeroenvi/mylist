@@ -3,6 +3,10 @@
     margin: 0px;
     clear: both;
 }
+.mycoursesoverview
+{
+    font-size: 150%;
+}
 #region-main-wrap .row.head
 {
     font-weight: bold;
@@ -18,30 +22,30 @@
 {
     margin: 0px;
 }
-#region-main-wrap .courserow .col1, #region-main-wrap .courserow .col2 
+#region-main-wrap .coursenamerow .col1, #region-main-wrap .coursenamerow .col2 
 {
     font-weight: bold;
     font-size: 120%; /* larger; */
     padding-bottom: 5px;
 }
-.courserow .col1 
+.coursenamerow .col1 
 {
     font-weight: bold;
     font-size: 120%; /* larger; */
     padding-bottom: 5px;
 }
-.courserow .col2 
+.coursenamerow .col2 
 {
     font-weight: bold;
     font-size: 120%; 
 }
 
-#region-main-wrap .courserow
+#region-main-wrap .coursenamerow
 {
     border-top: 1px solid black;
     /* margin-top: 10px; */
 }
-#region-post .courserow, #region-pre .courserow
+#region-post .coursenamerow, #region-pre .coursenamerow
 {
     border-top: 2px solid black;
     /* border-left: 2px solid black;
@@ -109,7 +113,7 @@ hr
 }
 .ghost, .greyedout
 {
-    opacity: 0.3;
+    opacity: 0.4;
 }
 /* .nodisplay
 {
@@ -134,11 +138,7 @@ hr
 }
 .progressbar.full
 {
-    border: 2px solid #0a0;
-}
-.progress
-{
-	float: left;
+    border: 2px solid #56825c /*#0a0*/;
 }
 .st25
 {
@@ -150,15 +150,15 @@ hr
 }
 .st75
 {
-    background-color: #bf7;
+    background-color: #bdd3b8/* #bdd3a8; */
 }
 .gt75
 {
-    background-color: #0d0;
+    background-color: #afd08a;/* #98ba78; *//*a5c288*/
 }
 .eq100
 {
-    background-color: #0e0;
+    background-color: #80cf50;/* #659835; */
 }
 .check
 {
@@ -177,4 +177,21 @@ hr
 {
     font-style: italic;
     font-size: 70%;/*smaller*/
+}
+.expanderexpanded
+{
+    background-image: url([[pix:|t/expanded]]);
+    background-repeat: no-repeat;
+    float: left;
+}
+.expandercollapsed
+{
+    background-image: url([[pix:|t/collapsed]]);
+    background-repeat: no-repeat;
+    float: left;
+}
+.collapsed  .itemrow
+{
+    visibility: hidden;
+    display: none;
 }

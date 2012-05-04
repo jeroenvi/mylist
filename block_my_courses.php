@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// credit for the checkbox icon to Contributors to the Ubuntu documentation wiki
+// https://help.ubuntu.com/community/License
+// The material on this wiki is released under the Creative Commons Attribution-ShareAlike 3.0 License.
+// You are therefore free to share and adapt the material, provided that you do so under the same or similar license, and that you give credit to the original authors.
+// The full text of the license can be found on the Creative Commons website.
+// When attributing, it is sufficient to refer to the authors of the wiki as a whole rather than individually, so "Contributors to the Ubuntu documentation wiki", although you should check the relevant page in case any specific attributions are required.
+// For information on why we have chosen this license, please see WikiLicensing.
+
 /**
 * mylist: A table-like overview of my courses, with grades and other additional information.
 * Most logical placement would be at the /my page, as a block in the middle column.
@@ -36,7 +44,7 @@ class block_my_courses extends block_base
     
     public function init() 
     {
-        $this->title = get_string('coursesoverviewtitle', 'block_my_courses');
+        $this->title = html_writer::tag('span', get_string('coursesoverviewtitle', 'block_my_courses'), array('class' => 'mycoursesoverview'));
     }
   
   
@@ -213,44 +221,37 @@ class block_my_courses extends block_base
     */
     private function block_my_courses_add_column_requirements($requirement, $completion, $coursegrade = false)
     {
+        global $CFG; 
         if($coursegrade)
         {
             $requirement = get_string('coursegrade', 'block_my_courses') . $requirement;
         }
         if($completion->is_complete() == 1)
         {
-            // the only times we add javascript
+            $url = $CFG->wwwroot . '/blocks/my_courses/checkboxxs.png';
+            
             $requirement = /* html_writer::tag('div', 'v', array(
                 'class' => 'requirement requireditem achieved yes', 
                 'title' => $requirement)); */
-                html_writer::checkbox   (
+                /* html_writer::checkbox   (
                                             'requirement requireditem achieved yes',
                                             1,
                                             true,
                                             '',
                                             array   (
                                                         'class' => 'requirement requireditem achieved yes',
-                                                        'onclick' => 'return false;', 
+                                                        'onclick' => 'return false;', //JAVASCRIPT!
                                                         'title' => $requirement
                                                     )
-                                        );
+                                        ); */
+                                       
+                            
+                            html_writer::empty_tag('img', array('src' => $url, 'alt' => 'checked box', 'title' => $requirement, 'class' => 'requirement requireditem achieved yes'));
         }
         else
         {
-            $requirement = /* html_writer::tag('div', 'x', array(
-                    'class' => 'requirement requireditem achieved no', 
-                    'title' => $requirement)); */
-                html_writer::checkbox   (
-                                            'requirement requireditem achieved no',
-                                            0,
-                                            false,
-                                            '',
-                                            array   (
-                                                        'class' => 'requirement requireditem achieved no',
-                                                        'onclick' => 'return false;', 
-                                                        'title' => $requirement
-                                                    )
-                                        );
+            $url = $CFG->wwwroot . '/blocks/my_courses/checkboxuncheckedxs.png';
+            $requirement = html_writer::empty_tag('img', array('src' => $url, 'alt' => 'unchecked box', 'title' => $requirement, 'class' => 'requirement requireditem achieved no'));
         }
         return $requirement;
     }
@@ -752,28 +753,40 @@ class block_my_courses extends block_base
         
         // first, see with which rows we are dealing
         $l = count($data);
+        $endcoursewrap = false;
+        $iscourserow = false;
         for ($i = 0; $i < $l; $i++)
         {
             // make row
             // if its the course row:
             if(is_array($data[$i]) && isset($data[$i]['courserow']))
             {
+                $iscourserow = true;
+                if($endcoursewrap)
+                {
+                    $divtable .= html_writer::end_tag('div');//course rows //end wrap entire course and all its items
+                }
+                // wrap entire course and all its items
+                $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse expanded')   );
+                
+                $endcoursewrap = true;
                 // if its a hidden course, for which user has teacher role
                 if(isset($data[$i]['ghost']))// && $data[$i]['ghost'] == true)
                 {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'courserow ghost row row' . ($i + 2) ));
+                    $divtable .= html_writer::start_tag('div', array('class' => 'coursenamerow ghost row row' . ($i + 2) ));
                     unset($data[$i]['ghost']);
                     unset($data[$i]['courserow']);
                 }
                 else
                 {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'courserow row row' . ($i + 2) ));
+                    $divtable .= html_writer::start_tag('div', array('class' => 'coursenamerow row row' . ($i + 2) ));
                     unset($data[$i]['courserow']);
                 }
             }
             // if its not a course row its a gradeable and/or required item
             else
             {
+                $iscourserow = false;
                 if(is_array($data[$i]) && isset($data[$i]['greyedout']))
                 {
                     $divtable .= html_writer::start_tag('div', array('class' => 'itemrow greyedout row row' . ($i + 2) ));
@@ -792,11 +805,39 @@ class block_my_courses extends block_base
             // add columns
             for ($i2 = 0; $i2 < $l2; $i2++)
             {
-                $divtable .= html_writer::tag('div', $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) )); 
+                // add collapse/expand ability. JAVASCRIPT!
+                if($i2 == 0 && $iscourserow)
+                {
+                    $expander = '<div 
+                                    class="expanderexpanded" 
+                                    onclick="
+                                    
+                                        if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
+                                        {
+                                            parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
+                                            this.innerHTML=\'\';
+                                            this.className = \'expanderexpanded\';
+                                        }
+                                        else 
+                                        {
+                                            parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
+                                            this.className = \'expandercollapsed\';
+                                        }
+                                    
+                                    "
+                                    style="width: 11px; height: 11px"
+                                ></div>';
+                    $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));
+                }
+                else
+                {
+                    $divtable .= html_writer::tag('div', $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) )); 
+                }
             }
             // close row
             $divtable .= html_writer::end_tag('div');//courserow/itemrow row rowx
         }
+        $divtable .= html_writer::end_tag('div');//course rows //end wrap entire course and all its items one last time
         // this added hr element is just for layout purposes: 
         // we dont know how big the data overview table will be, so we cant simply give widths/heights
         // just floating makes for correct size, but incorrect placement
