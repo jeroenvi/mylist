@@ -87,12 +87,12 @@ hr
 #region-main-wrap .col1
 {
     padding-left: 0%;
-    width: 35%;
+    width: 37%;
 }
 #region-main-wrap .itemrow .col1
 {
     padding-left: 2%;
-    width: 33%;
+    width: 35%;
 }
 .itemrow .col1
 {
@@ -101,12 +101,12 @@ hr
 
 #region-main-wrap .col2
 {
-    width: 17%;
+    width: 14%;
     text-align: center;
 }
 #region-main-wrap .col3
 {
-    width: 23%;
+    width: 25%;
     text-align: center;
 }
 #region-main-wrap .col4
@@ -229,4 +229,8 @@ hr
 .expandcollapseall
 {
     font-size: 75%;
+}
+.progress
+{
+    float: left;
 }

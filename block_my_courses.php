@@ -99,8 +99,8 @@ class block_my_courses extends block_base
                             'title' => get_string('expandalltitle', 'block_my_courses'),
                             'onclick' =>    '
                                                 var collapsetags = document.getElementsByTagName(\'div\');
-                                                length = collapsetags.length;
-                                                for(i = 0; i < length; i++)
+                                                var length = collapsetags.length;
+                                                for(var i = 0; i < length; i++)
                                                 {
                                                     if(collapsetags[i].className == \'expandercollapsed\')
                                                     {
@@ -128,8 +128,8 @@ class block_my_courses extends block_base
                             'title' => get_string('collapsealltitle', 'block_my_courses'),
                             'onclick' =>    '
                                                var expandtags = document.getElementsByTagName(\'div\');
-                                                length = expandtags.length;
-                                                for(i = 0; i < length; i++)
+                                                var length = expandtags.length;
+                                                for(var i = 0; i < length; i++)
                                                 {
                                                     if(expandtags[i].className == \'expanderexpanded\')
                                                     {

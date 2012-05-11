@@ -33,7 +33,7 @@ class block_my_courses_edit_form extends block_edit_form
                 
         // checkbox for column grades
         $mform->addElement('advcheckbox', 'config_cfg_col_grade', get_string('cfg_col_grade', 'block_my_courses'));
-        $mform->setDefault('config_cfg_col_requirements', 1);
+        $mform->setDefault('config_cfg_col_grade', 1);
         $mform->setType('config_cfg_col_grade', PARAM_MULTILANG);
 
         // checkbox for column requirementsitems
