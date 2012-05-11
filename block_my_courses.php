@@ -768,27 +768,27 @@ class block_my_courses extends block_base
                     $divtable .= html_writer::end_tag('div');//course rows //end wrap entire course and all its items
                 }
                 // wrap entire course and all its items
-                if($region == content)
+                if($region == 'content' && isset($data[$i]['ghost']))
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse expanded ghost')   );
+                    unset($data[$i]['ghost']);
+                }
+                else if($region == 'content')
                 {
                     $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse expanded')   );
+                }
+                else if(isset($data[$i]['ghost']))
+                {
+                    $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse collapsed ghost')   );
+                    unset($data[$i]['ghost']);
                 }
                 else
                 {
                     $divtable .= html_writer::start_tag('div', array('class' => 'entirecourse collapsed')   );
                 }
                 $endcoursewrap = true;
-                // if its a hidden course, for which user has teacher role
-                if(isset($data[$i]['ghost']))// && $data[$i]['ghost'] == true)
-                {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'coursenamerow ghost row row' . ($i + 2) ));
-                    unset($data[$i]['ghost']);
-                    unset($data[$i]['courserow']);
-                }
-                else
-                {
-                    $divtable .= html_writer::start_tag('div', array('class' => 'coursenamerow row row' . ($i + 2) ));
-                    unset($data[$i]['courserow']);
-                }
+                $divtable .= html_writer::start_tag('div', array('class' => 'coursenamerow row row' . ($i + 2) ));
+                unset($data[$i]['courserow']);
             }
             // if its not a course row its a gradeable and/or required item
             else

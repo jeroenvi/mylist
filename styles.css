@@ -98,7 +98,17 @@ hr
     padding-left: 5px;
 }
 
-#region-main-wrap .col2, #region-main-wrap .col3, #region-main-wrap .col4
+#region-main-wrap .col2
+{
+    width: 17%;
+    text-align: center;
+}
+#region-main-wrap .col3
+{
+    width: 23%;
+    text-align: center;
+}
+#region-main-wrap .col4
 {
     width: 20%;
     text-align: center;
@@ -142,19 +152,19 @@ hr
 }
 .st25
 {
-    background-color: red;
+    background-color: #dd5720;
 }
 .st50
 {
-    background-color: orange;
+    background-color: #ff8c00;
 }
 .st75
 {
-    background-color: #bdd3b8/* #bdd3a8; */
+    background-color: #ffd700;/* #bdd3a8; */
 }
 .gt75
 {
-    background-color: #afd08a;/* #98ba78; *//*a5c288*/
+    background-color: #9acd32; /*#afd08a;/* #98ba78; a5c288*/
 }
 .eq100
 {
