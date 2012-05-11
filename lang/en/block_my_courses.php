@@ -40,4 +40,9 @@
     $string['noprogressset']                = 'Course has no requirements';
     $string['goto']                         = 'Go to ';
     
+    $string['expandall']                    = 'expand all';
+    $string['collapseall']                  = 'collapse all';
+    $string['expandalltitle']               = 'Expand all courses';
+    $string['collapsealltitle']             = 'Collapse all courses';
+    
     

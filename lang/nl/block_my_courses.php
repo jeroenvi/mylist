@@ -40,3 +40,8 @@
     $string['notgradeable']             = 'Niet becijferbaar';
     $string['noprogressset']            = 'Cursus bevat geen vereisten';
     $string['goto']                     = 'Ga naar ';
+    
+    $string['expandall']                    = 'alles uitklappen';
+    $string['collapseall']                  = 'alles inklappen';
+    $string['expandalltitle']               = 'All cursussen uitklappen';
+    $string['collapsealltitle']             = 'Alle cursussen inklappen';

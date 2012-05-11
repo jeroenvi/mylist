@@ -82,7 +82,74 @@ class block_my_courses extends block_base
         
         // make overview according to custom configs
         $overview = $this->block_my_courses_make_overview();
-        
+        // add collapse all/ expand all to title
+        if($this->instance->region == 'content')
+        {
+            $this->title .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        }
+        else
+        {
+            $this->title .= '<br />';
+        }
+        $this->title .= html_writer::start_tag('span', array('class' => 'expandcollapseall'));
+        $this->title .= html_writer::link
+            (
+                '#', get_string('expandall', 'block_my_courses'), 
+                array   (
+                            'title' => get_string('expandalltitle', 'block_my_courses'),
+                            'onclick' =>    '
+                                                var collapsetags = document.getElementsByTagName(\'div\');
+                                                length = collapsetags.length;
+                                                for(i = 0; i < length; i++)
+                                                {
+                                                    if(collapsetags[i].className == \'expandercollapsed\')
+                                                    {
+                                                        collapsetags[i].className = \'expanderexpanded\';
+                                                        var grandgrandfather = collapsetags[i].parentNode.parentNode.parentNode.className;
+                                                        if(grandgrandfather == \'entirecourse collapsed ghost\')
+                                                        {
+                                                            collapsetags[i].parentNode.parentNode.parentNode.className = \'entirecourse expanded ghost\';
+                                                        }
+                                                        if(grandgrandfather == \'entirecourse collapsed\')
+                                                        {
+                                                            collapsetags[i].parentNode.parentNode.parentNode.className = \'entirecourse expanded\';
+                                                        }
+                                                    }
+                                                    
+                                                }
+                                            '                    
+                        )
+            ); 
+        $this->title .= ' / '; 
+        $this->title .= html_writer::link
+            (
+                '#', get_string('collapseall', 'block_my_courses'), 
+                array   (
+                            'title' => get_string('collapsealltitle', 'block_my_courses'),
+                            'onclick' =>    '
+                                               var expandtags = document.getElementsByTagName(\'div\');
+                                                length = expandtags.length;
+                                                for(i = 0; i < length; i++)
+                                                {
+                                                    if(expandtags[i].className == \'expanderexpanded\')
+                                                    {
+                                                        expandtags[i].className = \'expandercollapsed\';
+                                                        var grandgrandfather = expandtags[i].parentNode.parentNode.parentNode.className;
+                                                        if(grandgrandfather == \'entirecourse expanded ghost\')
+                                                        {
+                                                            expandtags[i].parentNode.parentNode.parentNode.className = \'entirecourse collapsed ghost\';
+                                                        }
+                                                        if(grandgrandfather == \'entirecourse expanded\')
+                                                        {
+                                                            expandtags[i].parentNode.parentNode.parentNode.className = \'entirecourse collapsed\';
+                                                        }
+                                                    }
+                                                    
+                                                } 
+                                            '                    
+                        )
+            ); 
+        $this->title .= html_writer::end_tag('span');//expandcollapseall
         // display content        
         $this->content          = new stdClass;
         $this->content->text    = $overview;
@@ -821,18 +888,27 @@ class block_my_courses extends block_base
                                         class="expanderexpanded" 
                                         onclick="
                                         
-                                            if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
+                                            if(parentNode.parentNode.parentNode.className == \'entirecourse expanded\')
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
+                                                this.className = \'expandercollapsed\';
+                                            }
+                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse expanded ghost\')
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed ghost\'; 
+                                                this.className = \'expandercollapsed\';
+                                            }
+                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
                                             {
                                                 parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
                                                 this.innerHTML=\'\';
                                                 this.className = \'expanderexpanded\';
                                             }
-                                            else 
+                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed ghost\')
                                             {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
-                                                this.className = \'expandercollapsed\';
+                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded ghost\'; 
+                                                this.className = \'expanderexpanded\';
                                             }
-                                        
                                         "
                                         style="width: 11px; height: 11px; padding-right: 2px;"
                                     ></div>';
@@ -844,16 +920,26 @@ class block_my_courses extends block_base
                                         class="expandercollapsed" 
                                         onclick="
                                         
-                                            if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
+                                            if(parentNode.parentNode.parentNode.className == \'entirecourse expanded\')
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
+                                                this.className = \'expandercollapsed\';
+                                            }
+                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse expanded ghost\')
+                                            {
+                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed ghost\'; 
+                                                this.className = \'expandercollapsed\';
+                                            }
+                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
                                             {
                                                 parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
                                                 this.innerHTML=\'\';
                                                 this.className = \'expanderexpanded\';
                                             }
-                                            else 
+                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed ghost\')
                                             {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
-                                                this.className = \'expandercollapsed\';
+                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded ghost\'; 
+                                                this.className = \'expanderexpanded\';
                                             }
                                         
                                         "

@@ -66,6 +66,7 @@
 {
     padding: 5px;
     margin: 0px;
+    max-width: 850px;
 }
 .data.overview.table
 {
@@ -123,7 +124,16 @@ hr
 }
 .ghost, .greyedout
 {
+    /* opacity gives problems by making divs underneath unaccessible... 
+    for that reason, make sure the divs dont overlap.. so make sure any row container divs
+    float as well*/
     opacity: 0.4;
+}
+.entirecourse, .row
+{
+    /* to prevent problems with opacity*/
+    float: left;
+    width: 100%;
 }
 /* .nodisplay
 {
@@ -206,15 +216,17 @@ hr
 }
 .collapsed  .itemrow
 {
-    visibility: hidden;
-    display: none;
+    display: none; 
 }
 #region-post .collapsed .col3, #region-pre .collapsed .col3
 {
-    visibility: hidden;
-    display: none;
+     display: none; 
 }
 .noinfo[title]:hover, .requirement[title]:hover, .itemrow.greyedout a[title]:hover, .coursenamerow.ghost a[title]:hover
 {
     cursor: help;
+}
+.expandcollapseall
+{
+    font-size: 75%;
 }
