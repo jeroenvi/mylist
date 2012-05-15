@@ -5,12 +5,12 @@
 }
 .mycoursesoverview
 {
-    font-size: 150%;
+    font-size: 1.50em;
 }
 #region-main-wrap .row.head
 {
     font-weight: bold;
-    font-size: 140%; /* larger; */
+    font-size: 1.40em; /* larger; */
 }
 #region-post .row.head, #region-pre .row.head
 {
@@ -22,22 +22,16 @@
 {
     margin: 0px;
 }
-#region-main-wrap .coursenamerow .col1, #region-main-wrap .coursenamerow .col2 
+#region-main-wrap .coursenamerow .col1, #region-main-wrap .coursenamerow .col2, .coursenamerow .col1 
 {
     font-weight: bold;
-    font-size: 120%; /* larger; */
-    padding-bottom: 5px;
-}
-.coursenamerow .col1 
-{
-    font-weight: bold;
-    font-size: 120%; /* larger; */
+    font-size: 1.20em; /* larger; */
     padding-bottom: 5px;
 }
 .coursenamerow .col2 
 {
     font-weight: bold;
-    font-size: 120%; 
+    font-size: 1.20em; 
 }
 
 #region-main-wrap .coursenamerow
@@ -196,7 +190,7 @@ hr
 .noinfo
 {
     font-style: italic;
-    font-size: 70%;/*smaller*/
+    font-size: .70em;/*smaller*/
 }
 .expanderexpanded
 {
@@ -228,7 +222,7 @@ hr
 }
 .expandcollapseall
 {
-    font-size: 75%;
+    font-size: .75em;
 }
 .progress
 {

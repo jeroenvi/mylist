@@ -259,29 +259,20 @@ class block_my_courses extends block_base
         }
         if($completion->is_complete() == 1)
         {
-            $url = $CFG->wwwroot . '/blocks/my_courses/checkboxxs.png';
-            
-            $requirement = /* html_writer::tag('div', 'v', array(
-                'class' => 'requirement requireditem achieved yes', 
-                'title' => $requirement)); */
-                /* html_writer::checkbox   (
-                                            'requirement requireditem achieved yes',
-                                            1,
-                                            true,
-                                            '',
-                                            array   (
-                                                        'class' => 'requirement requireditem achieved yes',
-                                                        'onclick' => 'return false;', //JAVASCRIPT!
-                                                        'title' => $requirement
-                                                    )
-                                        ); */
-                                       
-                            
-                            html_writer::empty_tag('img', array('src' => $url, 'alt' => 'checked box', 'title' => $requirement, 'class' => 'requirement requireditem achieved yes'));
+            $url = $CFG->wwwroot . '/blocks/my_courses/pix/checkboxxs.png';
+            $requirement = html_writer::empty_tag   (
+                                                        'img', 
+                                                        array(
+                                                            'src' => $url, 
+                                                            'alt' => 'checked box', 
+                                                            'title' => $requirement, 
+                                                            'class' => 'requirement requireditem achieved yes'
+                                                        )
+                                                    );
         }
         else
         {
-            $url = $CFG->wwwroot . '/blocks/my_courses/checkboxuncheckedxs.png';
+            $url = $CFG->wwwroot . '/blocks/my_courses/pix/checkboxuncheckedxs.png';
             $requirement = html_writer::empty_tag('img', array('src' => $url, 'alt' => 'unchecked box', 'title' => $requirement, 'class' => 'requirement requireditem achieved no'));
         }
         return $requirement;
@@ -316,14 +307,6 @@ class block_my_courses extends block_base
         if($total == 0)
         {
             $progress = html_writer::tag('span', get_string('noprogressset', 'block_my_courses'), array('class' => 'noinfo', 'title' => get_string('noprogress', 'block_my_courses')));
-            /* $progress = html_writer::start_tag('div', array(
-                'class' => 'progressbar noprogress', 
-                'title' => get_string('noprogress', 'block_my_courses')));
-            $progress .= html_writer::tag('div', '', array(
-                'class' => 'progress  noprogress', 
-                'style' => 'width: 100%; 
-                            height: 100%'));  
-            //$progress .= html_writer::end_tag('div');//progressbar */
         }
         else
         {
