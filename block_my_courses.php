@@ -232,7 +232,7 @@ class block_my_courses extends block_base
     * @param int $courseid
     * @return float $coursegrade or $itemgrade
     */
-    private function block_my_courses_add_column_grades($userid = null, $courseid = null, $gradeitem = null, $course = null)
+    private function block_my_courses_add_field_grades($userid = null, $courseid = null, $gradeitem = null, $course = null)
     {
         // check for which rows we are getting grades, 
         // by checking which parameters were given when calling add_column_grades
@@ -284,9 +284,10 @@ class block_my_courses extends block_base
     * Requirement information is a field in a row.
     * All requirement information together can also be considered to be a column 
     *
+    * @param String $requirement
     * @return String $requirement
     */
-    private function block_my_courses_add_column_requirements($requirement, $completion, $coursegrade = false)
+    private function block_my_courses_add_field_requirements($completion, $coursegrade = false)
     {
         global $CFG; 
         if($coursegrade)
@@ -330,9 +331,11 @@ class block_my_courses extends block_base
     * Column function
     * Function that adds progress bar to course row.
     *
+    * @param stdClass $mc
+    * @param String $userid
     * @return String $progress
     */
-    private function block_my_courses_add_column_progress($mc, $userid)
+    private function block_my_courses_add_field_progress($mc, $userid)
     {
         $info = new completion_info($mc);
         $completions = $info->get_completions($userid);
@@ -438,7 +441,7 @@ class block_my_courses extends block_base
         {
             // get the grade i got for each course
             // add it to the global course data
-            $mycourseoverview[] = $this->block_my_courses_add_column_grades($USER->id, $mc->id);
+            $mycourseoverview[] = $this->block_my_courses_add_field_grades($USER->id, $mc->id);
         }
         if($this->showcolumnrequirements)
         {
@@ -452,7 +455,7 @@ class block_my_courses extends block_base
                 if($criteria->criteriatype == 6)
                 {
                     $details = $criteria->get_details($completion);
-                    $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion, true);
+                    $requirement = $this->block_my_courses_add_field_requirements($completion, true);
                     $mycourseoverview[] = $requirement;
                     $notrequired = false;
                 }
@@ -464,7 +467,7 @@ class block_my_courses extends block_base
         }
         if($this->showcolumnprogress)
         {
-            $mycourseoverview[] = $this->block_my_courses_add_column_progress($mc, $USER->id);
+            $mycourseoverview[] = $this->block_my_courses_add_field_progress($mc, $USER->id);
         }
         // add the global course data to the complete collection of data
         $data[] = $mycourseoverview;
@@ -529,7 +532,7 @@ class block_my_courses extends block_base
                             }
                             if($this->showcolumngrades)
                             {
-                                $grade = $this->block_my_courses_add_column_grades($USER->id, null, $gi);
+                                $grade = $this->block_my_courses_add_field_grades($USER->id, null, $gi);
                                 $mycourseitemoverview[] = $grade;
                             }
                             if($this->showcolumnrequirements)
@@ -546,7 +549,7 @@ class block_my_courses extends block_base
                                     if($criteria instanceof completion_criteria_activity && $cmi->cm == $criteria->moduleinstance)
                                     {
                                         $hasrequirement = true;
-                                        $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                                        $requirement = $this->block_my_courses_add_field_requirements($completion);
                                         $mycourseitemoverview[] = $requirement;
                                     }
                                 }
@@ -640,12 +643,12 @@ class block_my_courses extends block_base
                                         }
                                         if($this->showcolumngrades)
                                         {
-                                            $grade = $this->block_my_courses_add_column_grades($USER->id, null, $gi);
+                                            $grade = $this->block_my_courses_add_field_grades($USER->id, null, $gi);
                                             $requireditem[] = $grade;
                                         }
                                         if($this->showcolumnrequirements)
                                         {
-                                            $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                                            $requirement = $this->block_my_courses_add_field_requirements($completion);
                                             $requireditem[] = $requirement;
                                         }
                                         if($this->showcolumnprogress)
@@ -682,7 +685,7 @@ class block_my_courses extends block_base
                     }
                     if($this->showcolumnrequirements)
                     {
-                        $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                        $requirement = $this->block_my_courses_add_field_requirements($completion);
                         $requireditem[] = $requirement;
                     }
                     if($this->showcolumnprogress)
@@ -758,7 +761,7 @@ class block_my_courses extends block_base
                     if($this->showcolumnrequirements)
                     {
                         // requirement. 
-                        $requirement = $this->block_my_courses_add_column_requirements($details['requirement'], $completion);
+                        $requirement = $this->block_my_courses_add_field_requirements($completion);
                         $requireditem[] = $requirement;
                     }
                     if($this->showcolumnprogress)
