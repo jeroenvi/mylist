@@ -83,41 +83,22 @@ class block_my_courses extends block_base
         // make overview according to custom configs
         $overview = $this->block_my_courses_make_overview();
         // add collapse all/ expand all to title
+        ?><script type="text/javascript" src= <?php global $CFG; echo('"' . $CFG->wwwroot);?>/blocks/my_courses/expandcollapse.js"></script><?php
         if($this->instance->region == 'content')
         {
-            $this->title .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            $class = 'inbroadcolumn';
         }
         else
         {
-            $this->title .= '<br />';
+            $class = 'insmallcolumn';
         }
-        $this->title .= html_writer::start_tag('span', array('class' => 'expandcollapseall'));
+        $this->title .= html_writer::start_tag('span', array('class' => 'expandcollapseall ' . $class));
         $this->title .= html_writer::link
             (
                 '#', get_string('expandall', 'block_my_courses'), 
                 array   (
                             'title' => get_string('expandalltitle', 'block_my_courses'),
-                            'onclick' =>    '
-                                                var collapsetags = document.getElementsByTagName(\'div\');
-                                                var length = collapsetags.length;
-                                                for(var i = 0; i < length; i++)
-                                                {
-                                                    if(collapsetags[i].className == \'expandercollapsed\')
-                                                    {
-                                                        collapsetags[i].className = \'expanderexpanded\';
-                                                        var grandgrandfather = collapsetags[i].parentNode.parentNode.parentNode.className;
-                                                        if(grandgrandfather == \'entirecourse collapsed ghost\')
-                                                        {
-                                                            collapsetags[i].parentNode.parentNode.parentNode.className = \'entirecourse expanded ghost\';
-                                                        }
-                                                        if(grandgrandfather == \'entirecourse collapsed\')
-                                                        {
-                                                            collapsetags[i].parentNode.parentNode.parentNode.className = \'entirecourse expanded\';
-                                                        }
-                                                    }
-                                                    
-                                                }
-                                            '                    
+                            'onclick' => 'expand_all();'                    
                         )
             ); 
         $this->title .= ' / '; 
@@ -126,27 +107,7 @@ class block_my_courses extends block_base
                 '#', get_string('collapseall', 'block_my_courses'), 
                 array   (
                             'title' => get_string('collapsealltitle', 'block_my_courses'),
-                            'onclick' =>    '
-                                               var expandtags = document.getElementsByTagName(\'div\');
-                                                var length = expandtags.length;
-                                                for(var i = 0; i < length; i++)
-                                                {
-                                                    if(expandtags[i].className == \'expanderexpanded\')
-                                                    {
-                                                        expandtags[i].className = \'expandercollapsed\';
-                                                        var grandgrandfather = expandtags[i].parentNode.parentNode.parentNode.className;
-                                                        if(grandgrandfather == \'entirecourse expanded ghost\')
-                                                        {
-                                                            expandtags[i].parentNode.parentNode.parentNode.className = \'entirecourse collapsed ghost\';
-                                                        }
-                                                        if(grandgrandfather == \'entirecourse expanded\')
-                                                        {
-                                                            expandtags[i].parentNode.parentNode.parentNode.className = \'entirecourse collapsed\';
-                                                        }
-                                                    }
-                                                    
-                                                } 
-                                            '                    
+                            'onclick' => 'collapse_all();'                    
                         )
             ); 
         $this->title .= html_writer::end_tag('span');//expandcollapseall
@@ -289,7 +250,7 @@ class block_my_courses extends block_base
     * @param boolean $coursegrade
     * @return String $requirement
     */
-    private function block_my_courses_add_field_requirements($completion, $coursegrade = false)
+    private function block_my_courses_add_field_requirements($requirement, $completion, $coursegrade = false)
     {
         global $CFG; 
         if($coursegrade)
@@ -453,11 +414,11 @@ class block_my_courses extends block_base
             foreach($completions as $completion)
             {
                 $criteria = $completion->get_criteria();
-                // check to see if a minimum course grade is required (id = 6)
-                if($criteria->criteriatype == 6)
+                // check to see if a minimum course grade is required (id = 6)/COMPLETION_CRITERIA_TYPE_GRADE
+                if($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_GRADE)
                 {
                     $details = $criteria->get_details($completion);
-                    $requirement = $this->block_my_courses_add_field_requirements($completion, true);
+                    $requirement = $this->block_my_courses_add_field_requirements($details['requirement'], $completion, true);
                     $mycourseoverview[] = $requirement;
                     $notrequired = false;
                 }
@@ -551,7 +512,7 @@ class block_my_courses extends block_base
                                     if($criteria instanceof completion_criteria_activity && $cmi->cm == $criteria->moduleinstance)
                                     {
                                         $hasrequirement = true;
-                                        $requirement = $this->block_my_courses_add_field_requirements($completion);
+                                        $requirement = $this->block_my_courses_add_field_requirements($details['requirement'], $completion);
                                         $mycourseitemoverview[] = $requirement;
                                     }
                                 }
@@ -658,12 +619,12 @@ class block_my_courses extends block_base
                                         }
                                         if($this->showcolumnrequirements)
                                         {
-                                            $requirement = $this->block_my_courses_add_field_requirements($completion);
+                                            $requirement = $this->block_my_courses_add_field_requirements($details['requirement'], $completion);
                                             $requireditem[] = $requirement;
                                         }
                                         if($this->showcolumnprogress)
                                         {
-                                            $requireditem[] = html_writer::tag('span', get_string('notrequired', 'block_my_courses'), array('class' => 'noinfo'));//'&nbsp;';
+                                            $requireditem[] = '';
                                         }
                                         $requiredandgradeables[] = $requireditem;
                                     }
@@ -695,7 +656,7 @@ class block_my_courses extends block_base
                     }
                     if($this->showcolumnrequirements)
                     {
-                        $requirement = $this->block_my_courses_add_field_requirements($completion);
+                        $requirement = $this->block_my_courses_add_field_requirements($details['requirement'], $completion);
                         $requireditem[] = $requirement;
                     }
                     if($this->showcolumnprogress)
@@ -771,7 +732,7 @@ class block_my_courses extends block_base
                     if($this->showcolumnrequirements)
                     {
                         // requirement. 
-                        $requirement = $this->block_my_courses_add_field_requirements($completion);
+                        $requirement = $this->block_my_courses_add_field_requirements($details['requirement'], $completion);
                         $requireditem[] = $requirement;
                     }
                     if($this->showcolumnprogress)
@@ -899,30 +860,7 @@ class block_my_courses extends block_base
                     {
                         $expander = '<div 
                                         class="expanderexpanded" 
-                                        onclick="
-                                        
-                                            if(parentNode.parentNode.parentNode.className == \'entirecourse expanded\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
-                                                this.className = \'expandercollapsed\';
-                                            }
-                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse expanded ghost\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed ghost\'; 
-                                                this.className = \'expandercollapsed\';
-                                            }
-                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
-                                                this.innerHTML=\'\';
-                                                this.className = \'expanderexpanded\';
-                                            }
-                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed ghost\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded ghost\'; 
-                                                this.className = \'expanderexpanded\';
-                                            }
-                                        "
+                                        onclick="expand_or_collapse(this);"
                                         style="width: 11px; height: 11px; padding-right: 2px;"
                                     ></div>';
                         $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));
@@ -931,31 +869,7 @@ class block_my_courses extends block_base
                     {
                         $expander = '<div 
                                         class="expandercollapsed" 
-                                        onclick="
-                                        
-                                            if(parentNode.parentNode.parentNode.className == \'entirecourse expanded\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed\'; 
-                                                this.className = \'expandercollapsed\';
-                                            }
-                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse expanded ghost\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse collapsed ghost\'; 
-                                                this.className = \'expandercollapsed\';
-                                            }
-                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded\'; 
-                                                this.innerHTML=\'\';
-                                                this.className = \'expanderexpanded\';
-                                            }
-                                            else if(parentNode.parentNode.parentNode.className == \'entirecourse collapsed ghost\')
-                                            {
-                                                parentNode.parentNode.parentNode.className=\'entirecourse expanded ghost\'; 
-                                                this.className = \'expanderexpanded\';
-                                            }
-                                        
-                                        "
+                                        onclick="expand_or_collapse(this);"
                                         style="width: 11px; height: 11px; padding-right: 2px;"
                                     ></div>';
                         $divtable .= html_writer::tag('div', $expander . $data[$i][$i2], array('class' => 'col col' . ($i2 + 1) ));

@@ -234,3 +234,11 @@ hr
 {
     float: left;
 }
+.inbroadcolumn
+{
+    padding-left: 50px;
+}
+.insmallcolumn
+{
+    display: block;
+}
