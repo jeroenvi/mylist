@@ -228,11 +228,12 @@ class block_my_courses extends block_base
     * Grade information is a field in a row.
     * All grade information together can also be considered to be a column 
     *
-    * @param int $userid
-    * @param int $courseid
+    * @param String $userid
+    * @param String $courseid
+    * @param grade_item
     * @return float $coursegrade or $itemgrade
     */
-    private function block_my_courses_add_field_grades($userid = null, $courseid = null, $gradeitem = null, $course = null)
+    private function block_my_courses_add_field_grades($userid = null, $courseid = null, $gradeitem = null)
     {
         // check for which rows we are getting grades, 
         // by checking which parameters were given when calling add_column_grades
@@ -284,7 +285,8 @@ class block_my_courses extends block_base
     * Requirement information is a field in a row.
     * All requirement information together can also be considered to be a column 
     *
-    * @param String $requirement
+    * $param completion_criteria $completion
+    * @param boolean $coursegrade
     * @return String $requirement
     */
     private function block_my_courses_add_field_requirements($completion, $coursegrade = false)
@@ -414,7 +416,7 @@ class block_my_courses extends block_base
     * Row function
     * Function that adds gradeable items as rows
     *
-    * @param stdClass Object course
+    * @param stdClass $mc
     * @param Array $data 
     * @return Array $data (with course info)
     */
@@ -440,7 +442,7 @@ class block_my_courses extends block_base
         if($this->showcolumngrades)
         {
             // get the grade i got for each course
-            // add it to the global course data
+            // add it to the global course data\
             $mycourseoverview[] = $this->block_my_courses_add_field_grades($USER->id, $mc->id);
         }
         if($this->showcolumnrequirements)
@@ -480,7 +482,7 @@ class block_my_courses extends block_base
     * Row function
     * Function that adds gradeable items as rows
     *
-    * @param stdClass Object course
+    * @param stdClass $mc
     * @param Array $data 
     * @return Array $data (with gradable item info)
     */
@@ -573,6 +575,14 @@ class block_my_courses extends block_base
     
     
     
+    /**
+    * Row function
+    * Function that adds required items as rows
+    *
+    * @param stdClass $mc
+    * @param Array $data 
+    * @return Array $data (with required item info)
+    */
     private function block_my_courses_add_row_required_items($mc, $data)
     {
         // gradable items and required items can overlap. 
